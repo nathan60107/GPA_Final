@@ -202,6 +202,6 @@ typedef struct {
 	vec2 camera_angle;
 } Model;
 
-Model models[20];
+Model models[50];
 
 ///

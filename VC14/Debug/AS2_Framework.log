@@ -1,16 +1,19 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (AS2_Framework.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-cl : 命令列 warning D9028: 最少重建失敗，還原成一般建置
   main.cpp
 d:\desktop\coding\opengl\gpa_final\source\source\freeimage.h : warning C4819: 檔案含有無法在目前字碼頁 (950) 中表示的字元。請以 Unicode 格式儲存檔案以防止資料遺失
 d:\desktop\coding\opengl\gpa_final\source\main.cpp(5): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 請參閱 'fopen' 的宣告
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(61): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(63): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(96): warning C4101: 'material': 未參考的區域變數
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(127): warning C4101: 'shape': 未參考的區域變數
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(400): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(425): warning C4244: '引數': 將 'int' 轉換為 'GLfloat'，由於類型不同，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(494): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(498): warning C4305: '-=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(60): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(62): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(101): warning C4101: 'material': 未參考的區域變數
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(132): warning C4101: 'shape': 未參考的區域變數
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(249): warning C4305: '引數': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(250): warning C4305: '引數': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(259): warning C4305: '引數': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(260): warning C4305: '引數': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(435): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(460): warning C4244: '引數': 將 'int' 轉換為 'GLfloat'，由於類型不同，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(529): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(533): warning C4305: '-=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
   AS2_Framework.vcxproj -> D:\Desktop\CODING\openGL\GPA_final\VC14\Debug\GPA_final_Framework.exe
   AS2_Framework.vcxproj -> D:\Desktop\CODING\openGL\GPA_final\VC14\Debug\GPA_final_Framework.pdb (Full PDB)

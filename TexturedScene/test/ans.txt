@@ -1,0 +1,42 @@
+loadSence("../TexturedScene/1pui1qkawg-Alsatian (Dog)/3ds file.3DS", "../TexturedScene/1pui1qkawg-Alsatian (Dog)/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/1xddh4yex6yo-rooster/rooster_1.0.1.3ds", "../TexturedScene/1xddh4yex6yo-rooster/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/aqfj72cgmv-Sheep/3ds file.3DS", "../TexturedScene/aqfj72cgmv-Sheep/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/black bear/BEAR_BLK.3DS", "../TexturedScene/black bear/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/Crow/CROW.3DS", "../TexturedScene/Crow/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/Duck/DUCK.3DS", "../TexturedScene/Duck/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/eagle 1/EAGLE_1.3DS", "../TexturedScene/eagle 1/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/eagle 3/EAGLE_3.3DS", "../TexturedScene/eagle 3/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/Flacon/FALCON_2.3DS", "../TexturedScene/Flacon/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/frog/FROG.3DS", "../TexturedScene/frog/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/german_shepard/german_shepard.3DS", "../TexturedScene/german_shepard/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/Goldfish/GOLDFISH.3DS", "../TexturedScene/Goldfish/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/LM bas/LM_BASS.3DS", "../TexturedScene/LM bas/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/MONARCH/MONARCH.3DS", "../TexturedScene/MONARCH/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/n3sasxu834-Chiken/3ds file.3DS", "../TexturedScene/n3sasxu834-Chiken/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/orca/ORCA.3DS", "../TexturedScene/orca/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/tgrs shark/TGRSHARK.3DS", "../TexturedScene/tgrs shark/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/turtoise/TORTOISE.3DS", "../TexturedScene/turtoise/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
+loadSence("../TexturedScene/xgkpxc88lwxs-Frogdir/Frog.3ds", "../TexturedScene/xgkpxc88lwxs-Frog/", shapeIndexCount, vec3(0, 0, 0), 1);
+
+1pui1qkawg-Alsatian (Dog)
+1xddh4yex6yo-rooster
+aqfj72cgmv-Sheep
+black bear
+Chickdee
+Crow
+Duck
+eagle 1
+eagle 3
+Flacon
+frog
+german_shepard
+Goldfish
+LM bas
+MONARCH
+n3sasxu834-Chiken
+orca
+tgrs shark
+turtoise
+Wolf Rigged and Game Ready
+xgkpxc88lwxs-Frog

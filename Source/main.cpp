@@ -51,7 +51,6 @@ TextureData loadPNG(const char* const pngFilepath)
 	// is the image successfully loaded?
 	if (data != NULL)
 	{
-		if (printOrNot)printf("data!=NULL");
 		// copy the raw data
 		size_t dataSize = texture.width * texture.height * 4 * sizeof(unsigned char);
 		texture.data = new unsigned char[dataSize];
@@ -75,7 +74,7 @@ TextureData loadPNG(const char* const pngFilepath)
 		stbi_image_free(data);
 	}
 	else {
-		printf("ERROR!!找不到圖片 圖片路徑%s\n", pngFilepath);
+		printf("ERROR!!data==NULL. Image not found. Image address=%s.\n", pngFilepath);
 	}
 
 	return texture;
@@ -83,10 +82,16 @@ TextureData loadPNG(const char* const pngFilepath)
 
 void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceIndexInput, vec3 center, float scale)
 {
-	printf("Start to load sence %d.\n", senceIndexInput);
+	printf("----------------------------\nStart to load sence %d.\n", senceIndexInput);
 
 	const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 	const aiScene* scene = aiImportFile(objPathInput, aiProcessPreset_TargetRealtime_MaxQuality);
+	if (scene == NULL) {
+		printf("Fail to load scene and print ERROR:");
+		printf(aiGetErrorString());
+		printf("\n");
+		return;
+	}
 	models[senceIndexInput].materials.resize(scene->mNumMaterials);
 	models[senceIndexInput].shapes.resize(scene->mNumMeshes);
 
@@ -108,13 +113,13 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			textureData = loadPNG(pngPath.c_str());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
 			glGenerateMipmap(GL_TEXTURE_2D);
-			if (printOrNot)printf("成功儲存material %d, texture name=%s\n", i, texturePath.C_Str());
+			if (printOrNot)printf("Successly saving material %d. Texture name=%s.\n", i, texturePath.C_Str());
 		}
 		else
 		{
 			// load some default image as default_diffuse_tex
 			//material.diffuse_tex = default_diffuse_tex;
-			printf("儲存material失敗 texture name=%s\n", texturePath.C_Str());
+			printf("Fail to save material %d. Texture name=%s.\n", i, texturePath.C_Str());
 		}
 		// save material…
 		materialsCount++;
@@ -144,7 +149,10 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			}
 		}
 
+
 		if (mesh != nullptr) {
+			int errorCount[2] = { 0 };
+
 			for (unsigned int v = 0; v < mesh->mNumVertices; ++v)
 			{
 				// mesh->mVertices[v][0~2] => position
@@ -159,6 +167,8 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 					temp[1][v * 3 + 2] = mesh->mNormals[v][2];
 				}
 				else {
+					errorCount[0]++;
+					
 					temp[1][v * 3] = Zero3D[0];
 					temp[1][v * 3 + 1] = Zero3D[1];
 					temp[1][v * 3 + 2] = Zero3D[2];
@@ -169,11 +179,14 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 					temp[2][v * 2 + 1] = mesh->mTextureCoords[0][v][1];
 				}
 				else {
-					printf("ERROR!! 找不到TextureCoords 以0代入\n");
+					errorCount[1]++;
 					temp[2][v * 2] = Zero3D[0];
 					temp[2][v * 2 + 1] = Zero3D[1];
 				}
 			}
+			if (errorCount[0] != 0)printf("ERROR!! Normals not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[0]);
+			if (errorCount[1] != 0)printf("ERROR!! TextureCoords not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[1]);
+
 			glGenBuffers(1, &models[senceIndexInput].shapes[i].vbo_position);
 			glBindBuffer(GL_ARRAY_BUFFER, models[senceIndexInput].shapes[i].vbo_position);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, temp[0], GL_STATIC_DRAW);
@@ -210,12 +223,12 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			// save shape…
 			models[senceIndexInput].shapes[i].materialID = mesh->mMaterialIndex;
 			models[senceIndexInput].shapes[i].drawCount = mesh->mNumFaces * 3;
-			printf("%d", shapesCount[senceIndexInput]);
-			if (printOrNot)printf("成功儲存shapes %d\n", i);
+			//printf("%d", shapesCount[senceIndexInput]);
+			if (printOrNot)printf("Successly saving shapes %d.\n", i);
 		}
 	}
 	shapeIndexCount++;
-	printf("Loading sence %d completes.\n", senceIndexInput);
+	printf("Loading sence %d completes.\n----------------------------\n", senceIndexInput);
 	aiReleaseImport(scene);
 }
 
@@ -232,7 +245,7 @@ void My_Init()
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
 
-	/*loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
@@ -240,9 +253,30 @@ void My_Init()
 	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), 1);*/
-	loadSence("../TexturedScene/DOve/DOve.OBJ", "../TexturedScene/DOve/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Gorilla/Gorilla.obj", "../TexturedScene/Gorilla/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Great_White_A/GreatWhite.obj", "../TexturedScene/Great_White_A/", shapeIndexCount, vec3(0, 0, 0), 0.01);
+	loadSence("../TexturedScene/Sand_Tiger/SandTiger.obj", "../TexturedScene/Sand_Tiger/", shapeIndexCount, vec3(0, 0, 0), 0.01);
+	loadSence("../TexturedScene/Killer_Whale/Killer_Whale.obj", "../TexturedScene/Killer_Whale/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Wolf/Wolf.obj", "../TexturedScene/Wolf/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Bear_Brown/Bear_Brown.obj", "../TexturedScene/Bear_Brown/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Chickdee/CHICKDEE.3DS", "../TexturedScene/Chickdee/", shapeIndexCount, vec3(0, 0, 0), 10);
+	loadSence("../TexturedScene/1pui1qkawg-Alsatian (Dog)/3ds file.3DS", "../TexturedScene/1pui1qkawg-Alsatian (Dog)/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/aqfj72cgmv-Sheep/3ds file.3DS", "../TexturedScene/aqfj72cgmv-Sheep/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/black bear/BEAR_BLK.3DS", "../TexturedScene/black bear/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Crow/CROW.3DS", "../TexturedScene/Crow/", shapeIndexCount, vec3(0, 0, 0), 3);
+	loadSence("../TexturedScene/Duck/DUCK.3DS", "../TexturedScene/Duck/", shapeIndexCount, vec3(0, 0, 0), 5);
+	loadSence("../TexturedScene/eagle 3/EAGLE_3.3DS", "../TexturedScene/eagle 3/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Flacon/FALCON_2.3DS", "../TexturedScene/Flacon/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/frog/FROG.3DS", "../TexturedScene/frog/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Goldfish/GOLDFISH.3DS", "../TexturedScene/Goldfish/", shapeIndexCount, vec3(0, 0, 0), 10);
+	loadSence("../TexturedScene/LM bas/LM_BASS.3DS", "../TexturedScene/LM bas/", shapeIndexCount, vec3(0, 0, 0), 3);
+	loadSence("../TexturedScene/MONARCH/MONARCH.3DS", "../TexturedScene/MONARCH/", shapeIndexCount, vec3(0, 0, 0), 3);
+	loadSence("../TexturedScene/orca/ORCA.3DS", "../TexturedScene/orca/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/turtoise/TORTOISE.3DS", "../TexturedScene/turtoise/", shapeIndexCount, vec3(0, 0, 0), 1);
 
+	//以下待確認
+	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
 
 	program = glCreateProgram();
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
