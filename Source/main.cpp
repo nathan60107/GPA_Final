@@ -74,6 +74,9 @@ TextureData loadPNG(const char* const pngFilepath)
 		// release the loaded image
 		stbi_image_free(data);
 	}
+	else {
+		printf("ERROR!!找不到圖片 圖片路徑%s\n", pngFilepath);
+	}
 
 	return texture;
 }
@@ -229,7 +232,7 @@ void My_Init()
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
 
-	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
+	/*loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
@@ -237,7 +240,8 @@ void My_Init()
 	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), 1);
-	
+	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), 1);*/
+	loadSence("../TexturedScene/DOve/DOve.OBJ", "../TexturedScene/DOve/", shapeIndexCount, vec3(0, 0, 0), 1);
 
 
 	program = glCreateProgram();
