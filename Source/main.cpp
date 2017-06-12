@@ -389,11 +389,13 @@ void My_Display()
 	deltaTime = float(currentTime - lastTime);
 
 	// Reset mouse position for next frame
-	glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+	if (mousePressOrNot) {
+		glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
 
-	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_WIDTH) / 2 - xpos);
-	verticalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_HEIGHT) / 2 - ypos);
+		// Compute new orientation
+		horizontalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_WIDTH) / 2 - xpos);
+		verticalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_HEIGHT) / 2 - ypos);
+	}
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
@@ -514,10 +516,12 @@ void My_Mouse(int button, int state, int x, int y)
 	if (state == GLUT_DOWN)
 	{
 		if (printOrNot)printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
+		mousePressOrNot = 1;
 	}
 	else if (state == GLUT_UP)
 	{
 		if (printOrNot)printf("Mouse %d is released at (%d, %d)\n", button, x, y);
+		mousePressOrNot = 0;
 	}
 }
 

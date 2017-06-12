@@ -204,4 +204,6 @@ typedef struct {
 
 Model models[50];
 
+bool mousePressOrNot = 0;
+
 ///
