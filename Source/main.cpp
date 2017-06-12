@@ -38,8 +38,6 @@ void freeShaderSource(char** srcp)
 	delete[] srcp;
 }
 
-// load a png image and return a TextureData structure with raw data
-// not limited to png format. works with any image format that is RGBA-32bit
 TextureData loadPNG(const char* const pngFilepath)
 {
 	TextureData texture;
@@ -80,6 +78,46 @@ TextureData loadPNG(const char* const pngFilepath)
 	return texture;
 }
 
+void cameraPositionChecker()
+{
+	if (camera_position.x > 30) camera_position.x = 30.0f;
+	if (camera_position.x < -30) camera_position.x = -30.0f;
+	if (camera_position.y > 30) camera_position.y = 30.0f;
+	if (camera_position.y < -30) camera_position.y = -30.0f;
+	if (camera_position.z > 30) camera_position.z = 30.0f;
+	if (camera_position.z < -30) camera_position.z = -30.0f;
+}
+
+void changeView()
+{
+	direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
+	rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
+	up = cross(rightDirection, direction);
+	view_matrix = lookAt(camera_position, camera_position + direction, up);
+	proj_matrix = perspective(initialFoV - 5 * currentFov, viewportAspect, 0.1f, 200.0f);
+}
+
+GLuint createProgram(std::string vertex, std::string fragment)
+{
+	GLuint prog = glCreateProgram();
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	char ** vertexShaderSource = loadShaderSource(vertex.c_str());
+	char ** fragmentShaderSource = loadShaderSource(fragment.c_str());
+	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
+	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
+	freeShaderSource(vertexShaderSource);
+	freeShaderSource(fragmentShaderSource);
+	glCompileShader(vertexShader);
+	glCompileShader(fragmentShader);
+	shaderLog(vertexShader);
+	shaderLog(fragmentShader);
+	glAttachShader(prog, vertexShader);
+	glAttachShader(prog, fragmentShader);
+	glLinkProgram(prog);
+	return prog;
+}
+
 void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceIndexInput, vec3 center, float scale)
 {
 	printf("----------------------------\nStart to load sence %d.\n", senceIndexInput);
@@ -95,15 +133,15 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 	models[senceIndexInput].materials.resize(scene->mNumMaterials);
 	models[senceIndexInput].shapes.resize(scene->mNumMeshes);
 
+	// load materials
 	for (unsigned int i = 0; i< scene->mNumMaterials; ++i)
 	{
-		aiMaterial *material123 = scene->mMaterials[i];
-		Material material;
+		aiMaterial *material = scene->mMaterials[i];
 		aiString texturePath;
 		string pngPath;
 		TextureData textureData;
 
-		if (material123->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
+		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
 		{
 			// load width, height and data from texturePath.C_Str();
 			glGenTextures(1, &models[senceIndexInput].materials[i].diffuse_tex);
@@ -113,46 +151,47 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			textureData = loadPNG(pngPath.c_str());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
 			glGenerateMipmap(GL_TEXTURE_2D);
-			if (printOrNot)printf("Successly saving material %d. Texture name=%s.\n", i, texturePath.C_Str());
+			if (printOrNot) printf("Successly saving material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
 		else
 		{
 			// load some default image as default_diffuse_tex
 			//material.diffuse_tex = default_diffuse_tex;
-			printf("Fail to save material %d. Texture name=%s.\n", i, texturePath.C_Str());
+			printf("Fail to save material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
-		// save material…
 		materialsCount++;
 	}
 
-
-	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
-	{
-		aiMesh*mesh = scene->mMeshes[i];
-		Shape shape;
-		glGenVertexArrays(1, &models[senceIndexInput].shapes[i].vao);
-		glBindVertexArray(models[senceIndexInput].shapes[i].vao);
-		// create 3 vbos to hold data
-		float temp[4][50000];
-
-		int n = 0;
-		vec3 c = vec3(0, 0, 0);
-		for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-			aiMesh *mesh = scene->mMeshes[i];
+	// calculate center
+	int n = 0;
+	vec3 c = vec3(0, 0, 0);
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+		aiMesh *mesh = scene->mMeshes[i];
+		if (mesh != nullptr) {
 			for (unsigned int v = 0; v < mesh->mNumVertices; ++v) {
 				const aiVector3D *pos = &(mesh->mVertices[v]);
-				//printf("%f\n", c.w);
 				c.x = (c.x*n + pos->x) / (n + 1);
 				c.y = (c.y*n + pos->y) / (n + 1);
 				c.z = (c.z*n + pos->z) / (n + 1);
 				n++;
 			}
 		}
-
-
+	}
+	
+	// load geometry
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
+	{
+		aiMesh*mesh = scene->mMeshes[i];
+		float temp[4][50000];
+		int tempInt[50000];
+		
+		glGenVertexArrays(1, &models[senceIndexInput].shapes[i].vao);
+		glBindVertexArray(models[senceIndexInput].shapes[i].vao);
+		
 		if (mesh != nullptr) {
 			int errorCount[2] = { 0 };
 
+			// create 3 vbos to hold data
 			for (unsigned int v = 0; v < mesh->mNumVertices; ++v)
 			{
 				// mesh->mVertices[v][0~2] => position
@@ -160,6 +199,7 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 				temp[0][v * 3] = (pos->x - c.x)*scale + center.x;
 				temp[0][v * 3 + 1] = (pos->y - c.y)*scale + center.y;
 				temp[0][v * 3 + 2] = (pos->z - c.z)*scale + center.z;
+				
 				// mesh->mNormals[v][0~2] => normal
 				if (mesh->HasNormals()) {
 					temp[1][v * 3] = mesh->mNormals[v][0];
@@ -168,11 +208,11 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 				}
 				else {
 					errorCount[0]++;
-					
 					temp[1][v * 3] = Zero3D[0];
 					temp[1][v * 3 + 1] = Zero3D[1];
 					temp[1][v * 3 + 2] = Zero3D[2];
 				}
+				
 				// mesh->mTextureCoords[0][v][0~1] => texcoord
 				if (mesh->HasTextureCoords(0)) {
 					temp[2][v * 2] = mesh->mTextureCoords[0][v][0];
@@ -184,6 +224,7 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 					temp[2][v * 2 + 1] = Zero3D[1];
 				}
 			}
+
 			if (errorCount[0] != 0)printf("ERROR!! Normals not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[0]);
 			if (errorCount[1] != 0)printf("ERROR!! TextureCoords not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[1]);
 
@@ -205,7 +246,6 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(1);
 
-			int tempInt[50000];
 			// create 1 ibo to hold data
 			for (unsigned int f = 0; f < mesh->mNumFaces; ++f)
 			{
@@ -214,19 +254,18 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 				tempInt[f * 3 + 1] = mesh->mFaces[f].mIndices[1];
 				tempInt[f * 3 + 2] = mesh->mFaces[f].mIndices[2];
 			}
+
 			glGenBuffers(1, &models[senceIndexInput].shapes[i].ibo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[senceIndexInput].shapes[i].ibo);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * mesh->mNumFaces, tempInt, GL_STATIC_DRAW);
-			// glVertexAttribPointer/ glEnableVertexArraycalls…
-
 			
-			// save shape…
+			// save shape info
 			models[senceIndexInput].shapes[i].materialID = mesh->mMaterialIndex;
 			models[senceIndexInput].shapes[i].drawCount = mesh->mNumFaces * 3;
-			//printf("%d", shapesCount[senceIndexInput]);
-			if (printOrNot)printf("Successly saving shapes %d.\n", i);
+			if (printOrNot) printf("Successly saving shapes %d.\n", i);
 		}
 	}
+
 	shapeIndexCount++;
 	printf("Loading sence %d completes.\n----------------------------\n", senceIndexInput);
 	aiReleaseImport(scene);
@@ -238,12 +277,30 @@ void My_Init()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
+	// create shader
+	program = createProgram("vertex.vs.glsl", "fragment.fs.glsl");
+	glUseProgram(program);
+
+	// get uniform location
+	um4mv = glGetUniformLocation(program, "um4mv");
+	um4p = glGetUniformLocation(program, "um4p");
+	us2dtex = glGetUniformLocation(program, "tex");
+	
+	// load sky box
+	string dir = "../TexturedScene/skyboxes/jajlands1/";
+	string front = "jajlands1_ft.jpg";
+	string back = "jajlands1_bk.jpg";
+	string left = "jajlands1_lf.jpg";
+	string right = "jajlands1_rt.jpg";
+	string top = "jajlands1_up.jpg";
+	string bottom = "jajlands1_dn.jpg";
+	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
+
 	//loadSence("../TexturedScene/Farmhouse Maya/farmhouse_obj.obj", "../TexturedScene/Farmhouse Maya/", 0, vec3(0, 0, 0), 1);
 	//loadSence("../TexturedScene/Old_Warehouse/OBJ/Warehouse.obj", "../TexturedScene/Old_Warehouse/", 1);
 	//loadSence("../TexturedScene/dabrovic-sponza/sponza.obj", "../TexturedScene/dabrovic-sponza/", 2);
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
-	
 
 	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
@@ -251,7 +308,7 @@ void My_Init()
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(2, 2, 2), 1);
 	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/Gorilla/Gorilla.obj", "../TexturedScene/Gorilla/", shapeIndexCount, vec3(0, 0, 0), 1);
@@ -278,161 +335,49 @@ void My_Init()
 	//以下待確認
 	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
 
-	program = glCreateProgram();
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	char** vertexShaderSource = loadShaderSource("vertex.vs.glsl");
-	char** fragmentShaderSource = loadShaderSource("fragment.fs.glsl");
-	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
-	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
-	freeShaderSource(vertexShaderSource);
-	freeShaderSource(fragmentShaderSource);
-	glCompileShader(vertexShader);
-	glCompileShader(fragmentShader);
-	glAttachShader(program, vertexShader);
-	glAttachShader(program, fragmentShader);
-	glLinkProgram(program);
-	glUseProgram(program);
-
-	um4mv = glGetUniformLocation(program, "um4mv");
-	um4p = glGetUniformLocation(program, "um4p");
-	us2dtex = glGetUniformLocation(program, "tex");
-
-	//program2
-	program2 = glCreateProgram();
-
-	//讀第二組shader
-	GLuint vs2 = glCreateShader(GL_VERTEX_SHADER);
-	char** vertexShaderSource2 = loadShaderSource("vertex.vs2.glsl");
-	glShaderSource(vs2, 1, vertexShaderSource2, NULL);
-	freeShaderSource(vertexShaderSource2);
-	glCompileShader(vs2);
-
-	GLuint fs2 = glCreateShader(GL_FRAGMENT_SHADER);
-	char** fragmentShaderSource2 = loadShaderSource("fragment.fs2.glsl");
-	glShaderSource(fs2, 1, fragmentShaderSource2, NULL);
-	freeShaderSource(fragmentShaderSource2);
-	glCompileShader(fs2);
-
-	glAttachShader(program2, vs2);
-	glAttachShader(program2, fs2);
-	glLinkProgram(program2);
-	glUseProgram(program2);
-
-	//get uniform location
-	PPOPLocation = glGetUniformLocation(program2, "parameter");
-	comparisonBarBorderLocation = glGetUniformLocation(program2, "comparisonBarBorder");
-	timeLocation = glGetUniformLocation(program2, "time");
-	magnifierCenterLocation = glGetUniformLocation(program2, "magnifierCenter");
-
-	//deal with noise texture
-	TextureData noise = loadPNG("../TexturedScene/noise/noise.png");
-
-	glGenTextures(1, &noiseTexture);
-	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, noise.width, noise.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, noise.data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glGenVertexArrays(1, &window_vao);
-	glBindVertexArray(window_vao);
-
-	glGenBuffers(1, &window_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, window_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(window_positions), window_positions, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 4, 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 4, (const GLvoid*)(sizeof(GL_FLOAT) * 2));
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-
-	glGenFramebuffers(1, &FBO);
-	My_Reshape(600, 600);
-
-	string dir = "../TexturedScene/skyboxes/jajlands1/";
-	string front = "jajlands1_ft.jpg";
-	string back = "jajlands1_bk.jpg";
-	string left = "jajlands1_lf.jpg";
-	string right = "jajlands1_rt.jpg";
-	string top = "jajlands1_up.jpg";
-	string bottom = "jajlands1_dn.jpg";
-
-	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
-
-	if (printOrNot)printf("結束My_Init\n");
+	if (printOrNot) printf("finish My_Init\n");
 }
 
 void My_Display()
 {
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(program);
-
-	static const GLfloat white[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	static const GLfloat one = 1.0f;
-	glClearBufferfv(GL_COLOR, 0, white);
-	glClearBufferfv(GL_DEPTH, 0, &one);
-
+	
+	// draw sky box
 	skybox.renderSkybox();
 
-	// glfwGetTime is called only once, the first time this function is called
+	// calculate elapsed time
 	static double lastTime = glutGet(GLUT_ELAPSED_TIME);
-
-	// Compute time difference between current and last frame
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = float(currentTime - lastTime);
 
-	// Reset mouse position for next frame
+	// reset mouse position and calculate angle
 	if (mousePressOrNot) {
-		glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-
-		// Compute new orientation
-		horizontalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_WIDTH) / 2 - xpos);
-		verticalAngle += mouseSpeed * float(glutGet(GLUT_WINDOW_HEIGHT) / 2 - ypos);
+		glutWarpPointer(start.x, start.y);
+		horizontalAngle += mouseSpeed * float(start.x - xpos);
+		verticalAngle += mouseSpeed * float(start.y - ypos);
 	}
 
-	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
-
-	// Right vector
-	rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
-
-	// Up vector
-	up = cross(rightDirection, direction);
-
-	// Camera matrix
-	view_matrix = lookAt(
-		position,           // Camera is here
-		position + direction, // and looks here : at the same position, plus "direction"
-		up                  // Head is up (set to 0,-1,0 to look upside-down)
-	);
-
-	// For the next frame, the "last time" will be "now"
+	// change view and record time
+	changeView();
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
 
-	//
-
-	mat4 translation = translate(mat4(), vec3(0, 0, 0));
+	// model matrix
+	/*mat4 translation = translate(mat4(), vec3(0, 0, 0));
 	GLfloat degree = 0 / 500.0;
 	vec3 ratate_axis = vec3(0.0, 1.0, 0.0);
 	mat4 rotation = rotate(mat4(), degree, ratate_axis);
 	model_matrix = translation * rotation;
-
 	model_matrix = rotate(mat4(), (float)0, vec3(1.0f, 0.0f, 0.0f)) * rotate(mat4(), (float)0, vec3(0.0f, 1.0f, 0.0f)) * translation;
-
+	*/
+	
+	// transmit uniform variable
 	mat4 mv_matrix = view_matrix * model_matrix;
-
 	glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(us2dtex, 0);
+
+	// draw models
 	for (int i = 0; i< models[shapeIndex].shapes.size(); ++i)
 	{
 		glBindVertexArray(models[shapeIndex].shapes[i].vao);
@@ -441,67 +386,15 @@ void My_Display()
 		glBindTexture(GL_TEXTURE_2D, models[shapeIndex].materials[materialID].diffuse_tex);
 		glDrawElements(GL_TRIANGLES, models[shapeIndex].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 	}
-
-
-	// Re-bind the framebuffer and clear it 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-
-
-	//新版的multi texture不需要get location也不需要glUniform，GL_TEXTURE0即對應fragment中layout (binding = 0)的uniform sampler2D
-	glUseProgram(program2);
-	glBindVertexArray(window_vao);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, FBODataTexture);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glUniform1i(PPOPLocation, PPOP);
-	glUniform1i(comparisonBarBorderLocation, comparisonBarBorder);
-	glUniform1f(timeLocation, glutGet(GLUT_ELAPSED_TIME));
-	glUniform2fv(magnifierCenterLocation, 1, magnifierCenter);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
+	
 	glutSwapBuffers();
 }
 
 void My_Reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	float viewportAspect = (float)width / (float)height;
-
-	float FoV = initialFoV - 5 * currentFov;
-
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	proj_matrix = perspective(FoV, viewportAspect, 0.1f, 200.0f);
-
-	// If the windows is reshaped, we need to reset some settings of framebuffer
-	glDeleteRenderbuffers(1, &depthRBO);
-	glDeleteTextures(1, &FBODataTexture);
-	glGenRenderbuffers(1, &depthRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
-
-
-	// TODO :
-	// (1) Generate a texture for FBO
-	// (2) Bind it so that we can specify the format of the textrue
-	glGenTextures(1, &FBODataTexture);
-	glBindTexture(GL_TEXTURE_2D, FBODataTexture);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// TODO :
-	// (1) Bind the framebuffer with first parameter "GL_DRAW_FRAMEBUFFER" 
-	// (2) Attach a renderbuffer object to a framebuffer object
-	// (3) Attach a texture image to a framebuffer object
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRBO);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBODataTexture, 0);
+	viewportAspect = (float)width / (float)height;
+	changeView();
 }
 
 void My_Timer(int val)
@@ -515,134 +408,93 @@ void My_Mouse(int button, int state, int x, int y)
 
 	if (state == GLUT_DOWN)
 	{
-		if (printOrNot)printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
+		if (printOrNot) printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
 		mousePressOrNot = 1;
+		start = vec2(x, y);
 	}
 	else if (state == GLUT_UP)
 	{
-		if (printOrNot)printf("Mouse %d is released at (%d, %d)\n", button, x, y);
+		if (printOrNot) printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 		mousePressOrNot = 0;
 	}
 }
 
-void mouseWheel(int button, int dir, int x, int y)
+void My_MouseWheel(int button, int dir, int x, int y)
 {
 	if (dir > 0)
 	{
-		currentFov += 0.1;// Zoom in
+		currentFov += 0.01; // Zoom in
 	}
 	else
 	{
-		currentFov -= 0.1;// Zoom out
+		currentFov -= 0.01; // Zoom out
 	}
-
-	return;
 }
 
-void MotionMouse(int x, int y)
+void My_PressedMotionMouse(int x, int y)
 {
 	xpos = x;
 	ypos = y;
 }
 
-void PassiveMotionMouse(int x, int y)
+void My_MotionMouse(int x, int y)
 {
 	xpos = x;
 	ypos = y;
-}
-
-void positionChecker()
-{
-	if (position.x > 30)position.x = 30.0f;
-	if (position.x < -30)position.x = -30.0f;
-	if (position.y > 30)position.y = 30.0f;
-	if (position.y < -30)position.y = -30.0f;
-	if (position.z > 30)position.z = 30.0f;
-	if (position.z < -30)position.z = -30.0f;
 }
 
 void My_Keyboard(unsigned char key, int x, int y)
 {
-	if (printOrNot)printf("Key %c is pressed at (%d, %d)\n", key, x, y);
+	if (printOrNot) printf("Key %c is pressed at (%d, %d)\n", key, x, y);
 	if (key == 'd' || key == 'D')
 	{
-		position += rightDirection * deltaTime * speed;
-		positionChecker();
+		camera_position += rightDirection * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 'a' || key == 'A')
 	{
-		position -= rightDirection * deltaTime * speed;
-		positionChecker();
+		camera_position -= rightDirection * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 'w' || key == 'W')
 	{
-		position += direction * deltaTime * speed;
-		positionChecker();
+		camera_position += direction * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 's' || key == 'S')
 	{
-		position -= direction * deltaTime * speed;
-		positionChecker();
+		camera_position -= direction * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 'z' || key == 'Z')
 	{
-		position += up * deltaTime * speed;
-		positionChecker();
+		camera_position += up * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 'x' || key == 'X')
 	{
-		position -= up * deltaTime * speed;
-		positionChecker();
+		camera_position -= up * deltaTime * speed;
+		cameraPositionChecker();
 	}
 	else if (key == 'c' || key == 'C')
 	{
 		shapeIndex = (shapeIndex + 1) % shapeIndexCount;
 	}
-	else if (key == 'v' || key == 'V')
-	{
-		PPOP = (PPOP + 1) % PPOPamount;
-	}
-	else if (key == 'l' || key == 'L')
-	{
-		magnifierCenter[0] = (magnifierCenter[0] + 5 <= 600) ? magnifierCenter[0] + 5 : magnifierCenter[0];
-	}
-	else if (key == 'j' || key == 'J')
-	{
-		magnifierCenter[0] = (magnifierCenter[0] - 5 >= 0) ? magnifierCenter[0] - 5 : magnifierCenter[0];
-	}
-	else if (key == 'i' || key == 'I')
-	{
-		magnifierCenter[1] = (magnifierCenter[1] + 5 <= 600) ? magnifierCenter[1] + 5 : magnifierCenter[1];
-	}
-	else if (key == 'k' || key == 'K')
-	{
-		magnifierCenter[1] = (magnifierCenter[1] - 5 >= 0) ? magnifierCenter[1] - 5 : magnifierCenter[1];
-	}
-	else if (key == 27)//ESC
+	else if (key == 27) //ESC
 	{
 		exit(0);
 	}
-
 }
 
 void My_SpecialKeys(int key, int x, int y)
 {
 	switch (key)
 	{
-	case GLUT_KEY_F1:
-		if (printOrNot)printf("F1 is pressed at (%d, %d)\n", x, y);
-		break;
-	case GLUT_KEY_PAGE_UP:
-		if (printOrNot)printf("Page up is pressed at (%d, %d)\n", x, y);
-		break;
-		/*case GLUT_KEY_LEFT:
-		if (printOrNot)printf("Left arrow is pressed at (%d, %d)\n", x, y);
-		break;*/
 	case GLUT_KEY_LEFT:
-		comparisonBarBorder = (comparisonBarBorder - 5 >= 0) ? comparisonBarBorder - 5 : comparisonBarBorder;
+		
 		break;
 	case GLUT_KEY_RIGHT:
-		comparisonBarBorder = (comparisonBarBorder + 5 <= 600) ? comparisonBarBorder + 5 : comparisonBarBorder;
+		
 		break;
 	case GLUT_KEY_UP:
 
@@ -651,7 +503,7 @@ void My_SpecialKeys(int key, int x, int y)
 
 		break;
 	default:
-		if (printOrNot)printf("Other special key is pressed at (%d, %d)\n", x, y);
+		if (printOrNot) printf("Other special key is pressed at (%d, %d)\n", x, y);
 		break;
 	}
 }
@@ -694,7 +546,7 @@ int main(int argc, char *argv[])
 #endif
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(600, 600);
-	glutCreateWindow("AS2_Framework"); // You cannot use OpenGL functions before this line; The OpenGL context must be created first by glutCreateWindow()!
+	glutCreateWindow("AS2_Framework");
 #ifdef _MSC_VER
 	glewInit();
 #endif
@@ -720,9 +572,9 @@ int main(int argc, char *argv[])
 	glutDisplayFunc(My_Display);
 	glutReshapeFunc(My_Reshape);
 	glutMouseFunc(My_Mouse);
-	glutMotionFunc(MotionMouse);
-	glutPassiveMotionFunc(PassiveMotionMouse);
-	glutMouseWheelFunc(mouseWheel);
+	glutMotionFunc(My_PressedMotionMouse);
+	glutPassiveMotionFunc(My_MotionMouse);
+	glutMouseWheelFunc(My_MouseWheel);
 	glutKeyboardFunc(My_Keyboard);
 	glutSpecialFunc(My_SpecialKeys);
 	glutTimerFunc(timer_speed, My_Timer, 0);
