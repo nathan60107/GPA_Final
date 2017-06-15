@@ -4,6 +4,7 @@
 #include "CTexture.h"
 #include "CVertexBufferObject.h"
 #include "CSkybox.h"
+#include <math.h>
 
 ///define
 #define MENU_TIMER_START 1
@@ -35,16 +36,9 @@ typedef struct Material
 typedef struct Model {
 	std::vector<Material> materials;
 	std::vector<Shape> shapes;
-	vec3 camera_position;
-	vec2 camera_angle;
+	mat4 model_matrix;
+	vec3 center;
 } Model;
-
-typedef struct uniforms_block
-{
-	glm::mat4 mv_matrix;
-	mat4 view_matrix;
-	mat4 proj_matrix;
-} uniforms_block;
 
 struct
 {
@@ -91,7 +85,6 @@ GLuint program;
 GLint um4mv;
 GLint um4p;
 GLint us2dtex;
-mat4 model_matrix;
 mat4 view_matrix;
 mat4 proj_matrix;
 
@@ -99,12 +92,26 @@ mat4 proj_matrix;
 CSkybox skybox;
 
 /// camera setting
-vec3 camera_position = vec3(0, 0, 5);		// Initial position : on +Z
+vec3 camera_position = vec3(0, 30, 50);		// Initial position : on +Z
 float horizontalAngle = 3.14f;				// Initial horizontal angle : toward -Z
 float verticalAngle = 0.0f;					// Initial vertical angle : none
 float initialFoV = 45.0f;					// Initial Field of View
 float currentFov = 0;
 float viewportAspect;
+int detailOfLevel = 100;
+int index = 0;
+float pastTime = 0;
+vector<vec3> curve;
+const float basis_matrix[4][4] = {
+	{-1, 3, -3, 1},
+	{3, -6, 3, 0},
+	{-3, 3, 0, 0},
+	{1, 0, 0, 0}
+};
+vec3 controlPoints[] = {
+	vec3(0, 30 ,50), vec3(0, -10, 10), vec3(0, -10, -10),
+	vec3(0, 30,-50)
+};
 
 /// track ball setting
 float deltaTime;

@@ -80,12 +80,12 @@ TextureData loadPNG(const char* const pngFilepath)
 
 void cameraPositionChecker()
 {
-	if (camera_position.x > 30) camera_position.x = 30.0f;
-	if (camera_position.x < -30) camera_position.x = -30.0f;
-	if (camera_position.y > 30) camera_position.y = 30.0f;
-	if (camera_position.y < -30) camera_position.y = -30.0f;
-	if (camera_position.z > 30) camera_position.z = 30.0f;
-	if (camera_position.z < -30) camera_position.z = -30.0f;
+	if (camera_position.x > 50) camera_position.x = 50.0f;
+	if (camera_position.x < -50) camera_position.x = -50.0f;
+	if (camera_position.y > 50) camera_position.y = 50.0f;
+	if (camera_position.y < -50) camera_position.y = -50.0f;
+	if (camera_position.z > 50) camera_position.z = 50.0f;
+	if (camera_position.z < -50) camera_position.z = -50.0f;
 }
 
 void changeView()
@@ -118,7 +118,7 @@ GLuint createProgram(std::string vertex, std::string fragment)
 	return prog;
 }
 
-void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceIndexInput, vec3 center, float scale)
+void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceIndexInput, vec3 center, vec3 scale)
 {
 	printf("----------------------------\nStart to load sence %d.\n", senceIndexInput);
 
@@ -177,6 +177,7 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			}
 		}
 	}
+	models[senceIndexInput].center = c;
 	
 	// load geometry
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
@@ -196,9 +197,9 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			{
 				// mesh->mVertices[v][0~2] => position
 				const aiVector3D *pos = &(mesh->mVertices[v]);
-				temp[0][v * 3] = (pos->x - c.x)*scale + center.x;
-				temp[0][v * 3 + 1] = (pos->y - c.y)*scale + center.y;
-				temp[0][v * 3 + 2] = (pos->z - c.z)*scale + center.z;
+				temp[0][v * 3] = (pos->x - c.x)*scale.x + center.x;
+				temp[0][v * 3 + 1] = (pos->y - c.y)*scale.y + center.y;
+				temp[0][v * 3 + 2] = (pos->z - c.z)*scale.z + center.z;
 				
 				// mesh->mNormals[v][0~2] => normal
 				if (mesh->HasNormals()) {
@@ -297,15 +298,21 @@ void My_Init()
 	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
 
 	// load scene model
-	loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), 1);
-	
+	loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
+	models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
+	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(5, -2, 38.5), vec3(0.57, 0.5, 0.5));
+	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(11.75, -2, 38.5), vec3(0.57, 0.5, 0.5));
+	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(18.5, -2, 38.5), vec3(0.57, 0.5, 0.5));
+	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(25.25, -2, 38.5), vec3(0.57, 0.5, 0.5));
+	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(32, -2, 38.5), vec3(0.57, 0.5, 0.5));
+
 	//loadSence("../TexturedScene/Farmhouse Maya/farmhouse_obj.obj", "../TexturedScene/Farmhouse Maya/", 0, vec3(0, 0, 0), 1);
 	//loadSence("../TexturedScene/Old_Warehouse/OBJ/Warehouse.obj", "../TexturedScene/Old_Warehouse/", 1);
 	//loadSence("../TexturedScene/dabrovic-sponza/sponza.obj", "../TexturedScene/dabrovic-sponza/", 2);
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	/*
-	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
 	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
@@ -338,6 +345,40 @@ void My_Init()
 	//¥H¤U«Ý½T»{
 	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
 
+	// calculate camara bezier curve
+	int controlPointNum = sizeof(controlPoints) / sizeof(controlPoints[0]);
+	for (int i = 0; i < (controlPointNum - 1) / 3; ++i) {
+		float controlGroup[4][3] = {
+			{ controlPoints[i * 3].x, controlPoints[i * 3].y , controlPoints[i * 3].z },
+			{ controlPoints[i * 3 + 1].x, controlPoints[i * 3 + 1].y , controlPoints[i * 3 + 1].z },
+			{ controlPoints[i * 3 + 2].x, controlPoints[i * 3 + 2].y , controlPoints[i * 3 + 2].z },
+			{ controlPoints[i * 3 + 3].x, controlPoints[i * 3 + 3].y , controlPoints[i * 3 + 3].z }
+		};
+		float matrix[4][3];
+		for (int a = 0; a < 4; ++a) {
+			for (int b = 0; b < 3; ++b) {
+				float value = 0;
+				for (int c = 0; c < 4; ++c) {
+					value += basis_matrix[a][c] * controlGroup[c][b];
+				}
+				matrix[a][b] = value;
+			}
+		}
+		for (int j = 0; j < detailOfLevel; ++j) {
+			vec3 pos;
+			float t = float(j) / detailOfLevel;
+			float T[4] = { pow(t, 3), pow(t, 2), t, 1 };
+			for (int a = 0; a < 3; ++a) {
+				float value = 0;
+				for (int b = 0; b < 4; ++b) {
+					value += T[b] * matrix[b][a];
+				}
+				pos[a] = value;
+			}
+			curve.push_back(pos);
+		}
+	}
+	
 	if (printOrNot) printf("finish My_Init\n");
 }
 
@@ -352,6 +393,7 @@ void My_Display()
 	static double lastTime = glutGet(GLUT_ELAPSED_TIME);
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = float(currentTime - lastTime);
+	pastTime += deltaTime;
 
 	// reset mouse position and calculate angle
 	if (mousePressOrNot) {
@@ -361,8 +403,13 @@ void My_Display()
 	}
 
 	// change view and record time
+	if (pastTime > 80) {
+		camera_position = curve[index];
+		index = (index + 1) % 100;
+		pastTime = 0;
+	}
 	changeView();
-	lastTime = glutGet(GLUT_ELAPSED_TIME);
+	lastTime = currentTime;
 
 	// model matrix
 	/*mat4 translation = translate(mat4(), vec3(0, 0, 0));
@@ -372,22 +419,26 @@ void My_Display()
 	model_matrix = translation * rotation;
 	model_matrix = rotate(mat4(), (float)0, vec3(1.0f, 0.0f, 0.0f)) * rotate(mat4(), (float)0, vec3(0.0f, 1.0f, 0.0f)) * translation;
 	*/
-	
-	// transmit uniform variable
-	mat4 mv_matrix = view_matrix * model_matrix;
-	glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
-	glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(us2dtex, 0);
 
 	// draw models
-	for (int i = 0; i< models[shapeIndex].shapes.size(); ++i)
-	{
-		glBindVertexArray(models[shapeIndex].shapes[i].vao);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[shapeIndex].shapes[i].ibo);
-		int materialID = models[shapeIndex].shapes[i].materialID;
-		glBindTexture(GL_TEXTURE_2D, models[shapeIndex].materials[materialID].diffuse_tex);
-		glDrawElements(GL_TRIANGLES, models[shapeIndex].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+	for (int m = 0; m < shapeIndexCount; ++m) {
+		
+		// transmit uniform variable
+		mat4 mv_matrix = view_matrix * models[m].model_matrix;
+		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(us2dtex, 0);
+		
+		// draw
+		for (int i = 0; i < models[m].shapes.size(); ++i)
+		{
+			glBindVertexArray(models[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
+			int materialID = models[m].shapes[i].materialID;
+			glBindTexture(GL_TEXTURE_2D, models[m].materials[materialID].diffuse_tex);
+			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+		}
 	}
 	
 	glutSwapBuffers();
