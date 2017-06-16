@@ -278,6 +278,24 @@ void My_Init()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
+	// ----- Begin Initialize Depth Shader Program -----
+	GLuint shadow_vs;
+	GLuint shadow_fs;
+	shadow_vs = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(shadow_vs, 1, depth_vs, 0);
+	glCompileShader(shadow_vs);
+	shadow_fs = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(shadow_fs, 1, depth_fs, 0);
+	glCompileShader(shadow_fs);
+	depthProg = glCreateProgram();
+	glAttachShader(depthProg, shadow_vs);
+	glAttachShader(depthProg, shadow_fs);
+	glLinkProgram(depthProg);
+	uniforms_shadow.light.mvp = glGetUniformLocation(depthProg, "mvp");
+	// ----- End Initialize Depth Shader Program -----
+
+
+
 	// create shader
 	program = createProgram("vertex.vs.glsl", "fragment.fs.glsl");
 	glUseProgram(program);
@@ -286,6 +304,8 @@ void My_Init()
 	um4mv = glGetUniformLocation(program, "um4mv");
 	um4p = glGetUniformLocation(program, "um4p");
 	us2dtex = glGetUniformLocation(program, "tex");
+	uniforms_shadow.view.shadow_matrix = glGetUniformLocation(program, "shadow_matrix");
+	uniforms_shadow.view.shadow_tex = glGetUniformLocation(program, "shadow_tex");
 	
 	// load sky box
 	string dir = "../TexturedScene/skyboxes/jajlands1/";
@@ -345,6 +365,7 @@ void My_Init()
 	//¥H¤U«Ý½T»{
 	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
 
+
 	// calculate camara bezier curve
 	int controlPointNum = sizeof(controlPoints) / sizeof(controlPoints[0]);
 	for (int i = 0; i < (controlPointNum - 1) / 3; ++i) {
@@ -379,12 +400,74 @@ void My_Init()
 		}
 	}
 	
+	glGenFramebuffers(1, &shadowBuffer.fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
+	
+	glGenTextures(1, &shadowBuffer.depthMap);
+	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowBuffer.depthMap, 0);
+
 	if (printOrNot) printf("finish My_Init\n");
 }
 
 void My_Display()
 {
+	mat4 scale_bias_matrix = mat4(
+		vec4(0.5f, 0.0f, 0.0f, 0.0f),
+		vec4(0.0f, 0.5f, 0.0f, 0.0f),
+		vec4(0.0f, 0.0f, 0.5f, 0.0f),
+		vec4(0.5f, 0.5f, 0.5f, 1.0f)
+	);
+	// ----- Begin Shadow Map Pass -----
+	mat4 light_proj_matrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
+	mat4 light_view_matrix = lookAt(vec3(20.0f, 20.0f, 20.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix;
+
+	mat4 shadow_sbpv_matrix = scale_bias_matrix * light_vp_matrix;
+
+	glUseProgram(depthProg);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(4.0f, 4.0f);
+	
+	for (int m = 0; m < shapeIndexCount; ++m) {
+
+		// transmit uniform variable
+		mat4 mv_matrix = view_matrix * models[m].model_matrix;
+		glUniformMatrix4fv(uniforms_shadow.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *models[m].model_matrix));
+		glActiveTexture(GL_TEXTURE0);
+
+		// draw
+		for (int i = 0; i < models[m].shapes.size(); ++i)
+		{
+			glBindVertexArray(models[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
+			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+		}
+	}
+	glDisable(GL_POLYGON_OFFSET_FILL);
+	// ----- End Shadow Map Pass -----
+
+	// ----- Begin Blinn-Phong Shading Pass -----
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, viewportSize.width, viewportSize.height);
+	glUseProgram(program);
+
+	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(proj_matrix));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
+	glUniform1i(uniforms_shadow.view.shadow_tex, 0);
 	
 	// draw sky box
 	skybox.renderSkybox();
@@ -403,32 +486,25 @@ void My_Display()
 	}
 
 	// change view and record time
-	if (pastTime > 80) {
+	/*if (pastTime > 80) {
 		camera_position = curve[index];
 		index = (index + 1) % 100;
 		pastTime = 0;
-	}
+	}*/
 	changeView();
 	lastTime = currentTime;
-
-	// model matrix
-	/*mat4 translation = translate(mat4(), vec3(0, 0, 0));
-	GLfloat degree = 0 / 500.0;
-	vec3 ratate_axis = vec3(0.0, 1.0, 0.0);
-	mat4 rotation = rotate(mat4(), degree, ratate_axis);
-	model_matrix = translation * rotation;
-	model_matrix = rotate(mat4(), (float)0, vec3(1.0f, 0.0f, 0.0f)) * rotate(mat4(), (float)0, vec3(0.0f, 1.0f, 0.0f)) * translation;
-	*/
 
 	// draw models
 	for (int m = 0; m < shapeIndexCount; ++m) {
 		
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * models[m].model_matrix;
+		glUniformMatrix4fv(uniforms_shadow.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
 		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(us2dtex, 0);
+		//glUniform1i(us2dtex, 0);
 		
 		// draw
 		for (int i = 0; i < models[m].shapes.size(); ++i)
@@ -446,6 +522,8 @@ void My_Display()
 
 void My_Reshape(int width, int height)
 {
+	viewportSize.width = width;
+	viewportSize.height = height;
 	glViewport(0, 0, width, height);
 	viewportAspect = (float)width / (float)height;
 	changeView();

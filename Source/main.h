@@ -175,3 +175,63 @@ const char *skybox_vs_glsl[] =
 	"}                                                         \n"
 	"                                                          \n"
 };
+
+///////////////////////////////////////////////////////////////
+const char *depth_vs[] =
+{
+	"#version 410 core                         \n"
+	"                                          \n"
+	"uniform mat4 mvp;                         \n"
+	"                                          \n"
+	"layout (location = 0) in vec4 position;   \n"
+	"                                          \n"
+	"void main(void)                           \n"
+	"{                                         \n"
+	"    gl_Position = mvp * position;         \n"
+	"}                                         \n"
+};
+
+const char *depth_fs[] =
+{
+	"#version 410 core                                \n"
+	"                                                 \n"
+	"out vec4 fragColor;                              \n"
+	"                                                 \n"
+	"void main()                                      \n"
+	"{                                                \n"
+	"    fragColor = vec4(vec3(gl_FragCoord.z), 1.0); \n"
+	"}                                                \n"
+};
+
+GLuint depthProg;
+
+struct
+{
+	struct
+	{
+		GLint   mvp;
+	} light;
+	struct
+	{
+		GLuint  shadow_tex;
+		GLint   mv_matrix;
+		GLint   proj_matrix;
+		GLint   shadow_matrix;
+		GLint   full_shading;
+		GLint   light_matrix;
+	} view;
+} uniforms_shadow;
+
+struct
+{
+	GLuint fbo;
+	GLuint depthMap;
+} shadowBuffer;
+
+struct
+{
+	int width;
+	int height;
+} viewportSize;
+
+#define SHADOW_MAP_SIZE 4096
