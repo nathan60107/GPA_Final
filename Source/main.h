@@ -82,6 +82,8 @@ unsigned int shapeIndexCount = 0;
 
 /// shader
 GLuint program;
+GLuint skyBoxProgram;
+GLint um4v;
 GLint um4mv;
 GLint um4p;
 GLint us2dtex;

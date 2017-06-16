@@ -1,9 +1,10 @@
-#version 410
+#version 420
 
 layout(location = 0) in vec3 iv3vertex;
 layout(location = 1) in vec2 iv2tex_coord;
 layout(location = 2) in vec3 iv3normal;
 
+uniform mat4 um4v;
 uniform mat4 um4mv;
 uniform mat4 um4p;
 uniform mat4 shadow_matrix;
@@ -25,11 +26,12 @@ void main()
 	// Calculate view-space coordinate
 	vec4 P = um4mv * vec4(iv3vertex, 1.0);
 	// Calculate normal in view-space
-	vertexData.N = mat3(um4mv) * iv3normal;
+	vertexData.N = normalize(mat3(um4mv) * iv3normal);
 	// Calculate light vector
-	vertexData.L = light_pos - P.xyz;
+	vertexData.L = vec3(normalize(um4v*vec4(light_pos, 0.0)));
 	// Calculate view vector
-	vertexData.V = -P.xyz;
+	vertexData.V = normalize(-P.xyz);
+	vertexData.H = normalize(vertexData.V+vertexData.L);
 	// Light-space coordinates
 	vertexData.shadow_coord = shadow_matrix * vec4(iv3vertex, 1.0);
 	

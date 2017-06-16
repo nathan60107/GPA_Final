@@ -150,7 +150,11 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			pngPath.append(texturePath.C_Str());
 			textureData = loadPNG(pngPath.c_str());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
-			glGenerateMipmap(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//X軸Y軸的處理方式
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			//glGenerateMipmap(GL_TEXTURE_2D);
 			if (printOrNot) printf("Successly saving material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
 		else
@@ -301,6 +305,7 @@ void My_Init()
 	glUseProgram(program);
 
 	// get uniform location
+	um4v = glGetUniformLocation(program, "um4v");
 	um4mv = glGetUniformLocation(program, "um4mv");
 	um4p = glGetUniformLocation(program, "um4p");
 	us2dtex = glGetUniformLocation(program, "tex");
@@ -318,8 +323,9 @@ void My_Init()
 	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
 
 	// load scene model
-	loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
-	models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
+
+	//loadSence("../TexturedScene/scene/house 2MS/house2.obj", "../TexturedScene/scene/house 2MS/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(5, -2, 38.5), vec3(0.57, 0.5, 0.5));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(11.75, -2, 38.5), vec3(0.57, 0.5, 0.5));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(18.5, -2, 38.5), vec3(0.57, 0.5, 0.5));
@@ -331,9 +337,9 @@ void My_Init()
 	//loadSence("../TexturedScene/dabrovic-sponza/sponza.obj", "../TexturedScene/dabrovic-sponza/", 2);
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
-	/*
-	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
+	
+	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
 	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), 1);
@@ -460,17 +466,20 @@ void My_Display()
 	// ----- Begin Blinn-Phong Shading Pass -----
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	glViewport(0, 0, viewportSize.width, viewportSize.height);
 	glUseProgram(program);
+	
 
 	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(proj_matrix));
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
-	glUniform1i(uniforms_shadow.view.shadow_tex, 0);
+	glUniform1i(uniforms_shadow.view.shadow_tex, 1);
 	
 	// draw sky box
 	skybox.renderSkybox();
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// calculate elapsed time
 	static double lastTime = glutGet(GLUT_ELAPSED_TIME);
@@ -501,10 +510,11 @@ void My_Display()
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * models[m].model_matrix;
 		glUniformMatrix4fv(uniforms_shadow.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glActiveTexture(GL_TEXTURE0);
-		//glUniform1i(us2dtex, 0);
+		glUniform1i(us2dtex, 0);
 		
 		// draw
 		for (int i = 0; i < models[m].shapes.size(); ++i)
@@ -516,7 +526,7 @@ void My_Display()
 			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
 	}
-	
+	// ----- End Begin Blinn-Phong Shading Pass -----
 	glutSwapBuffers();
 }
 
