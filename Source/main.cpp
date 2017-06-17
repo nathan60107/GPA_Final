@@ -164,6 +164,37 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			printf("Fail to save material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
 		materialsCount++;
+
+		aiColor3D color(0.f, 0.f, 0.f);
+		if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS) {
+			models[senceIndexInput].materials[i].diffuse = color;
+			//cout << "DIFFUSE" << " " << color.r << " " << color.g << " " << color.b << endl;
+		}
+		else {
+			//cout << "DIFFUSE NOT FOUND<----------------------------ERROR!!"<< endl;
+		}
+		if (material->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS) {
+			models[senceIndexInput].materials[i].specular = color;
+			//cout << "SPECULAR" << " " << color.r << " " << color.g << " " << color.b << endl;
+		}
+		else {
+			//cout << "SPECULAR NOT FOUND<----------------------------ERROR!!" << endl;
+		}
+		if (material->Get(AI_MATKEY_COLOR_AMBIENT, color) == aiReturn_SUCCESS) {
+			models[senceIndexInput].materials[i].ambient = color;
+			//cout << "AMBIENT" << " " << color.r << " " << color.g << " " << color.b << endl;
+		}
+		else {
+			//cout << "AMBIENT NOT FOUND<----------------------------ERROR!!" << endl;
+		}
+		float c;
+		if (material->Get(AI_MATKEY_SHININESS, c) == aiReturn_SUCCESS) {
+			models[senceIndexInput].materials[i].shininess = c;
+			//cout << "SHININESS" << " " << c << endl;
+		}
+		else {
+			//cout << "SHININESS NOT FOUND<----------------------------ERROR!!" << endl;
+		}
 	}
 
 	// calculate center
@@ -299,7 +330,7 @@ void My_Init()
 	// ----- End Initialize Depth Shader Program -----
 
 
-
+	// ----- Begin Initialize Blinn-Phong Shader Program -----
 	// create shader
 	program = createProgram("vertex.vs.glsl", "fragment.fs.glsl");
 	glUseProgram(program);
@@ -311,8 +342,14 @@ void My_Init()
 	us2dtex = glGetUniformLocation(program, "tex");
 	uniforms_shadow.view.shadow_matrix = glGetUniformLocation(program, "shadow_matrix");
 	uniforms_shadow.view.shadow_tex = glGetUniformLocation(program, "shadow_tex");
-	
-	// load sky box
+	uniforms_shadow.light.diffuse = glGetUniformLocation(program, "diffuse_albedo");
+	uniforms_shadow.light.specular = glGetUniformLocation(program, "specular_albedo");
+	uniforms_shadow.light.ambient = glGetUniformLocation(program, "ambient");
+	uniforms_shadow.light.shininess = glGetUniformLocation(program, "specular_power");
+	uniforms_shadow.light.light_pos = glGetUniformLocation(program, "light_pos");
+	// ----- End Initialize Blinn-Phong Shader Program -----
+
+	// ----- Begin Initialize Sky Box -----
 	string dir = "../TexturedScene/skyboxes/jajlands1/";
 	string front = "jajlands1_ft.jpg";
 	string back = "jajlands1_bk.jpg";
@@ -321,10 +358,10 @@ void My_Init()
 	string top = "jajlands1_up.jpg";
 	string bottom = "jajlands1_dn.jpg";
 	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
+	// ---- - End Initialize Sky Box---- -
 
-	// load scene model
-
-	//loadSence("../TexturedScene/scene/house 2MS/house2.obj", "../TexturedScene/scene/house 2MS/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	// ----- Begin Initialize Scene Model -----
+	//loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
 	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(5, -2, 38.5), vec3(0.57, 0.5, 0.5));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(11.75, -2, 38.5), vec3(0.57, 0.5, 0.5));
@@ -339,38 +376,38 @@ void My_Init()
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
 	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
-	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
-	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), 0.01);
-	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(2, 2, 2), 1);
-	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Gorilla/Gorilla.obj", "../TexturedScene/Gorilla/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Great_White_A/GreatWhite.obj", "../TexturedScene/Great_White_A/", shapeIndexCount, vec3(0, 0, 0), 0.01);
-	loadSence("../TexturedScene/Sand_Tiger/SandTiger.obj", "../TexturedScene/Sand_Tiger/", shapeIndexCount, vec3(0, 0, 0), 0.01);
-	loadSence("../TexturedScene/Killer_Whale/Killer_Whale.obj", "../TexturedScene/Killer_Whale/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Wolf/Wolf.obj", "../TexturedScene/Wolf/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Bear_Brown/Bear_Brown.obj", "../TexturedScene/Bear_Brown/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Chickdee/CHICKDEE.3DS", "../TexturedScene/Chickdee/", shapeIndexCount, vec3(0, 0, 0), 10);
-	loadSence("../TexturedScene/1pui1qkawg-Alsatian (Dog)/3ds file.3DS", "../TexturedScene/1pui1qkawg-Alsatian (Dog)/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/aqfj72cgmv-Sheep/3ds file.3DS", "../TexturedScene/aqfj72cgmv-Sheep/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/black bear/BEAR_BLK.3DS", "../TexturedScene/black bear/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Crow/CROW.3DS", "../TexturedScene/Crow/", shapeIndexCount, vec3(0, 0, 0), 3);
-	loadSence("../TexturedScene/Duck/DUCK.3DS", "../TexturedScene/Duck/", shapeIndexCount, vec3(0, 0, 0), 5);
-	loadSence("../TexturedScene/eagle 3/EAGLE_3.3DS", "../TexturedScene/eagle 3/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Flacon/FALCON_2.3DS", "../TexturedScene/Flacon/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/frog/FROG.3DS", "../TexturedScene/frog/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/Goldfish/GOLDFISH.3DS", "../TexturedScene/Goldfish/", shapeIndexCount, vec3(0, 0, 0), 10);
-	loadSence("../TexturedScene/LM bas/LM_BASS.3DS", "../TexturedScene/LM bas/", shapeIndexCount, vec3(0, 0, 0), 3);
-	loadSence("../TexturedScene/MONARCH/MONARCH.3DS", "../TexturedScene/MONARCH/", shapeIndexCount, vec3(0, 0, 0), 3);
-	loadSence("../TexturedScene/orca/ORCA.3DS", "../TexturedScene/orca/", shapeIndexCount, vec3(0, 0, 0), 1);
-	loadSence("../TexturedScene/turtoise/TORTOISE.3DS", "../TexturedScene/turtoise/", shapeIndexCount, vec3(0, 0, 0), 1);
-	*/
+	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(2, 2, 2), vec3(1));
+	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Gorilla/Gorilla.obj", "../TexturedScene/Gorilla/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Great_White_A/GreatWhite.obj", "../TexturedScene/Great_White_A/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	loadSence("../TexturedScene/Sand_Tiger/SandTiger.obj", "../TexturedScene/Sand_Tiger/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	loadSence("../TexturedScene/Killer_Whale/Killer_Whale.obj", "../TexturedScene/Killer_Whale/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Wolf/Wolf.obj", "../TexturedScene/Wolf/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Bear_Brown/Bear_Brown.obj", "../TexturedScene/Bear_Brown/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Chickdee/CHICKDEE.3DS", "../TexturedScene/Chickdee/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	loadSence("../TexturedScene/1pui1qkawg-Alsatian (Dog)/3ds file.3DS", "../TexturedScene/1pui1qkawg-Alsatian (Dog)/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/aqfj72cgmv-Sheep/3ds file.3DS", "../TexturedScene/aqfj72cgmv-Sheep/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/black bear/BEAR_BLK.3DS", "../TexturedScene/black bear/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Crow/CROW.3DS", "../TexturedScene/Crow/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
+	loadSence("../TexturedScene/Duck/DUCK.3DS", "../TexturedScene/Duck/", shapeIndexCount, vec3(0, 0, 0), vec3(5));
+	loadSence("../TexturedScene/eagle 3/EAGLE_3.3DS", "../TexturedScene/eagle 3/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Flacon/FALCON_2.3DS", "../TexturedScene/Flacon/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/frog/FROG.3DS", "../TexturedScene/frog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/Goldfish/GOLDFISH.3DS", "../TexturedScene/Goldfish/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	loadSence("../TexturedScene/LM bas/LM_BASS.3DS", "../TexturedScene/LM bas/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
+	loadSence("../TexturedScene/MONARCH/MONARCH.3DS", "../TexturedScene/MONARCH/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
+	loadSence("../TexturedScene/orca/ORCA.3DS", "../TexturedScene/orca/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
+	loadSence("../TexturedScene/turtoise/TORTOISE.3DS", "../TexturedScene/turtoise/", shapeIndexCount, vec3(0, 0, 0), vec3(1));*/
+	
 	//¥H¤U«Ý½T»{
 	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
-
+	// ----- End Initialize Scene Model -----
 
 	// calculate camara bezier curve
 	int controlPointNum = sizeof(controlPoints) / sizeof(controlPoints[0]);
@@ -431,8 +468,9 @@ void My_Display()
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
 	// ----- Begin Shadow Map Pass -----
+	vec3 lightPosition = vec3(20.0f, 20.0f, 20.0f);
 	mat4 light_proj_matrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
-	mat4 light_view_matrix = lookAt(vec3(20.0f, 20.0f, 20.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	mat4 light_view_matrix = lookAt(lightPosition, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix;
 
 	mat4 shadow_sbpv_matrix = scale_bias_matrix * light_vp_matrix;
@@ -476,6 +514,7 @@ void My_Display()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
 	glUniform1i(uniforms_shadow.view.shadow_tex, 1);
+	glUniform3fv(uniforms_shadow.light.light_pos, 3, value_ptr(lightPosition));
 	
 	// draw sky box
 	skybox.renderSkybox();
@@ -513,6 +552,7 @@ void My_Display()
 		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(us2dtex, 0);
 		
@@ -522,6 +562,12 @@ void My_Display()
 			glBindVertexArray(models[m].shapes[i].vao);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
 			int materialID = models[m].shapes[i].materialID;
+
+			glUniform3f(uniforms_shadow.light.ambient, models[m].materials[materialID].ambient[0], models[m].materials[materialID].ambient[1], models[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms_shadow.light.diffuse, models[m].materials[materialID].diffuse[0], models[m].materials[materialID].diffuse[1], models[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms_shadow.light.shininess, models[m].materials[materialID].shininess);
+			glUniform3f(uniforms_shadow.light.specular, models[m].materials[materialID].specular[0], models[m].materials[materialID].specular[1], models[m].materials[materialID].specular[2]);
+
 			glBindTexture(GL_TEXTURE_2D, models[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}

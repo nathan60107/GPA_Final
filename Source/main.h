@@ -10,6 +10,7 @@
 #define MENU_TIMER_START 1
 #define MENU_TIMER_STOP 2
 #define MENU_EXIT 3
+#define SHADOW_MAP_SIZE 4096
 
 ///using namespace
 using namespace glm;
@@ -31,6 +32,10 @@ typedef struct Shape
 typedef struct Material
 {
 	GLuint diffuse_tex;
+	aiColor3D diffuse;
+	aiColor3D specular;
+	aiColor3D ambient = aiColor3D(0.0f,0.0f,0.0f);
+	float shininess = 384.314;
 } Material;
 
 typedef struct Model {
@@ -68,6 +73,39 @@ typedef struct _TextureData
 	unsigned char* data;
 } TextureData;
 
+struct
+{
+	struct
+	{
+		GLint mvp;
+		GLint diffuse;
+		GLint specular;
+		GLint ambient;
+		GLint shininess;
+		GLint light_pos;
+	} light;
+	struct
+	{
+		GLuint  shadow_tex;
+		GLint   mv_matrix;
+		GLint   proj_matrix;
+		GLint   shadow_matrix;
+		GLint   full_shading;
+		GLint   light_matrix;
+	} view;
+} uniforms_shadow;
+
+struct
+{
+	GLuint fbo;
+	GLuint depthMap;
+} shadowBuffer;
+
+struct
+{
+	int width;
+	int height;
+} viewportSize;
 
 /// timer
 GLubyte timer_cnt = 0;
@@ -82,6 +120,7 @@ unsigned int shapeIndexCount = 0;
 
 /// shader
 GLuint program;
+GLuint depthProg;
 GLuint skyBoxProgram;
 GLint um4v;
 GLint um4mv;
@@ -92,6 +131,15 @@ mat4 proj_matrix;
 
 /// sky box
 CSkybox skybox;
+struct
+{
+	GLint vColor;
+	GLint fAmbientIntensity;
+	GLint vDirection;
+	GLint projectionMatrix;
+	GLint gSampler;
+} skyboxUniform;
+
 
 /// camera setting
 vec3 camera_position = vec3(0, 30, 50);		// Initial position : on +Z
@@ -204,36 +252,3 @@ const char *depth_fs[] =
 	"    fragColor = vec4(vec3(gl_FragCoord.z), 1.0); \n"
 	"}                                                \n"
 };
-
-GLuint depthProg;
-
-struct
-{
-	struct
-	{
-		GLint   mvp;
-	} light;
-	struct
-	{
-		GLuint  shadow_tex;
-		GLint   mv_matrix;
-		GLint   proj_matrix;
-		GLint   shadow_matrix;
-		GLint   full_shading;
-		GLint   light_matrix;
-	} view;
-} uniforms_shadow;
-
-struct
-{
-	GLuint fbo;
-	GLuint depthMap;
-} shadowBuffer;
-
-struct
-{
-	int width;
-	int height;
-} viewportSize;
-
-#define SHADOW_MAP_SIZE 4096

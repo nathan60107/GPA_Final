@@ -8,6 +8,7 @@ uniform mat4 um4p;
 uniform vec3 diffuse_albedo = vec3(0.9, 0.8, 1.0);//顏色鮮明度
 uniform vec3 specular_albedo = vec3(0.7);//光點會不會亮
 uniform float specular_power = 300.0;//光點範圍
+uniform vec3 ambient;
 uniform bool full_shading = true;	
 
 
