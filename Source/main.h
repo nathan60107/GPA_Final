@@ -107,6 +107,15 @@ struct
 	int height;
 } viewportSize;
 
+struct
+{
+	GLint vColor;
+	GLint fAmbientIntensity;
+	GLint vDirection;
+	GLint projectionMatrix;
+	GLint gSampler;
+} skyboxUniform;
+
 /// timer
 GLubyte timer_cnt = 0;
 bool timer_enabled = true;
@@ -117,6 +126,8 @@ Model models[50];
 unsigned int materialsCount = 0;
 unsigned int shapeIndex = 0;
 unsigned int shapeIndexCount = 0;
+Model coord[441];
+unsigned int coordIndex = 0;
 
 /// shader
 GLuint program;
@@ -132,20 +143,12 @@ mat4 proj_matrix;
 
 /// sky box
 CSkybox skybox;
-struct
-{
-	GLint vColor;
-	GLint fAmbientIntensity;
-	GLint vDirection;
-	GLint projectionMatrix;
-	GLint gSampler;
-} skyboxUniform;
-
+float side = 1000.0f;
 
 /// camera setting
-vec3 camera_position = vec3(0, 30, 50);		// Initial position : on +Z
-float horizontalAngle = 3.14f;				// Initial horizontal angle : toward -Z
-float verticalAngle = 0.0f;					// Initial vertical angle : none
+vec3 camera_position = vec3(600, 300, 600);		// Initial position : on +Z
+float horizontalAngle = 3.93f;				// Initial horizontal angle : toward -Z
+float verticalAngle = -0.39f;					// Initial vertical angle : none
 float initialFoV = 45.0f;					// Initial Field of View
 float currentFov = 0;
 float viewportAspect;
@@ -166,7 +169,7 @@ vec3 controlPoints[] = {
 
 /// track ball setting
 float deltaTime;
-float speed = 0.012f;
+float speed = 0.3f;
 float mouseSpeed = 0.005f;
 vec3 direction;
 vec3 rightDirection;
@@ -179,7 +182,6 @@ bool mousePressOrNot = false;
 
 /// others
 bool printOrNot = true;
-
 
 /// sky box shader
 const char *skybox_fs_glsl[] =
