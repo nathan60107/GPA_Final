@@ -339,6 +339,7 @@ void My_Init()
 	um4v = glGetUniformLocation(program, "um4v");
 	um4mv = glGetUniformLocation(program, "um4mv");
 	um4p = glGetUniformLocation(program, "um4p");
+	um4m = glGetUniformLocation(program, "um4m");
 	us2dtex = glGetUniformLocation(program, "tex");
 	uniforms_shadow.view.shadow_matrix = glGetUniformLocation(program, "shadow_matrix");
 	uniforms_shadow.view.shadow_tex = glGetUniformLocation(program, "shadow_tex");
@@ -552,6 +553,7 @@ void My_Display()
 		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(um4m, 1, GL_FALSE, value_ptr(models[m].model_matrix));
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(us2dtex, 0);

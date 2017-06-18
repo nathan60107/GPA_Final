@@ -7,6 +7,7 @@ layout(location = 2) in vec3 iv3normal;
 uniform mat4 um4v;
 uniform mat4 um4mv;
 uniform mat4 um4p;
+uniform mat4 um4m;
 uniform mat4 shadow_matrix;
 
 out VertexData
@@ -17,6 +18,7 @@ out VertexData
     vec3 H; // eye space halfway vector
 	vec3 V;
     vec2 texcoord;
+	vec4 viewSpace_coord;
 } vertexData;
 
 uniform vec3 light_pos = vec3(20.0, 20.0, 20.0);
@@ -37,4 +39,6 @@ void main()
 	
 	gl_Position = um4p * um4mv * vec4(iv3vertex, 1.0);
     vertexData.texcoord = iv2tex_coord;
+	
+	vertexData.viewSpace_coord=um4v*um4m*vec4(iv3vertex, 1.0);
 }

@@ -125,6 +125,7 @@ GLuint skyBoxProgram;
 GLint um4v;
 GLint um4mv;
 GLint um4p;
+GLint um4m;
 GLint us2dtex;
 mat4 view_matrix;
 mat4 proj_matrix;
