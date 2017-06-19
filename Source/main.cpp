@@ -760,9 +760,9 @@ void My_Display()
 	}
 
 	// change view and record time
-	if (pastTime > 80) {
+	if (pastTime > cameraSpeed && animateStart) {
 		actualCamera.position = curve[index];
-		index = (index + 1) % 100;
+		index = (index + 1) % curve.size();
 		pastTime = 0;
 	}
 	changeView();
@@ -950,6 +950,17 @@ void My_Menu(int id)
 {
 	switch (id)
 	{
+	case ANIMATION:
+		if (animateStart) {
+			actualCamera = cameras[nowCamera];
+			animateStart = false;
+		}
+		else {
+			cameras[nowCamera] = actualCamera;
+			pastTime = 0;
+			animateStart = true;
+		}
+		break;
 	case FOG:
 		glUniform1i(uniforms.parameter.fogSwitch, (++fogSwitch)%2);
 		printf("fog %d\n", fogSwitch);
@@ -1006,9 +1017,10 @@ int main(int argc, char *argv[])
 	//int menu_timer = glutCreateMenu(My_Menu);
 
 	glutSetMenu(menu_main);
-	glutAddMenuEntry("fog", FOG);
-	glutAddMenuEntry("shadow", SHADOW);
-	glutAddMenuEntry("blinn Phong", BLINNPHONG);
+	glutAddMenuEntry("Fog", FOG);
+	glutAddMenuEntry("Shadow", SHADOW);
+	glutAddMenuEntry("Blinn Phong", BLINNPHONG);
+	glutAddMenuEntry("Animation", ANIMATION);
 	//glutAddSubMenu("Timer", menu_timer);
 	glutAddMenuEntry("Exit", MENU_EXIT);
 

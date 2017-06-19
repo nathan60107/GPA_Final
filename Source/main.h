@@ -13,6 +13,7 @@
 #define FOG 4
 #define SHADOW 5
 #define BLINNPHONG 6
+#define ANIMATION 7
 #define SHADOW_MAP_SIZE 4096
 
 ///using namespace
@@ -171,9 +172,11 @@ float initialFoV = 45.0f;
 float viewportAspect;
 
 /// bezier curve
+bool animateStart = false;
 int detailOfLevel = 100;
 int index = 0;
 float pastTime = 0;
+float cameraSpeed = 80.0f;
 vector<vec3> curve;
 const float basis_matrix[4][4] = {
 	{-1, 3, -3, 1},
@@ -182,8 +185,23 @@ const float basis_matrix[4][4] = {
 	{1, 0, 0, 0}
 };
 vec3 controlPoints[] = {
-	vec3(20, -10 , 470), vec3(-10, -10, 390), vec3(95, -10, 300),
-	vec3(170, -10, 310)
+	vec3(20, -10 , 470), vec3(10, -10, 380), vec3(80, -10, 300),
+	vec3(170, -10, 310), vec3(260, -10, 320), vec3(325, -10, 230),
+	vec3(315, -10, 140), vec3(305, -10, 50), vec3(380, -10, -30),
+	vec3(470, -10, -20), vec3(560, -10, -10), vec3(630, -10, -85),
+	vec3(630, -10, -175), vec3(630, -10, -265), vec3(550, -10, -350),
+	vec3(460, -10, -340), vec3(370, -10, -330), vec3(280, -10, -390),
+	vec3(290, -10, -480), vec3(300, -10, -570), vec3(215, -10, -645),
+	vec3(125, -10, -645), vec3(35, -10, -645), vec3(-40, -10, -570),
+	vec3(-30, -10, -480), vec3(-20, -10, -390), vec3(-90, -10, -295),
+	vec3(-180, -10, -305), vec3(-270, -10, -315), vec3(-340, -10, -230),
+	vec3(-330, -10, -140), vec3(-320, -10, -50), vec3(-380, -10, 35),
+	vec3(-470, -10, 25), vec3(-560, -10, 15), vec3(-635, -10, 80),
+	vec3(-635, -10, 170), vec3(-635, -10, 260), vec3(-570, -10, 345),
+	vec3(-480, -10, 335), vec3(-390, -10, 325), vec3(-285, -10, 385),
+	vec3(-295, -10, 475), vec3(-305, -10, 565), vec3(-215, -10, 645),
+	vec3(-125, -10, 645), vec3(-35, -10, 645), vec3(30, -10, 560),
+	vec3(20, -10, 470)
 };
 
 /// track ball setting
