@@ -129,6 +129,14 @@ struct
 	GLint gSampler;
 } skyboxUniform;
 
+typedef struct
+{
+	vec3 position;
+	float horizontalAngle;
+	float verticalAngle;
+	float currentFov = 0;
+} Camera;
+
 /// timer
 GLubyte timer_cnt = 0;
 bool timer_enabled = true;
@@ -140,7 +148,7 @@ unsigned int streetCount = 0;
 Model grass[225];
 Material grassTexture;
 unsigned int grassCount = 0;
-Model coord[441];
+Model coord[457];
 unsigned int coordCount = 0;
 
 /// shader
@@ -155,12 +163,14 @@ CSkybox skybox;
 float side = 1000.0f;
 
 /// camera setting
-vec3 camera_position = vec3(600, 300, 600);		// Initial position : on +Z
-float horizontalAngle = 3.93f;				// Initial horizontal angle : toward -Z
-float verticalAngle = -0.39f;					// Initial vertical angle : none
-float initialFoV = 45.0f;					// Initial Field of View
-float currentFov = 0;
+Camera actualCamera;
+Camera cameras[2];
+unsigned int cameraCount = 2;
+unsigned int nowCamera = 0;
+float initialFoV = 45.0f;
 float viewportAspect;
+
+/// bezier curve
 int detailOfLevel = 100;
 int index = 0;
 float pastTime = 0;
@@ -172,8 +182,8 @@ const float basis_matrix[4][4] = {
 	{1, 0, 0, 0}
 };
 vec3 controlPoints[] = {
-	vec3(0, 30 ,50), vec3(0, -10, 10), vec3(0, -10, -10),
-	vec3(0, 30,-50)
+	vec3(20, -10 , 470), vec3(-10, -10, 390), vec3(95, -10, 300),
+	vec3(170, -10, 310)
 };
 
 /// track ball setting

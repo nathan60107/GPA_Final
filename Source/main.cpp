@@ -194,21 +194,21 @@ void drawSquare(float width, float height, vec2 center, Model* models, unsigned 
 
 void cameraPositionChecker()
 {
-	if (camera_position.x > side) camera_position.x = side;
-	if (camera_position.x < -side) camera_position.x = -side;
-	if (camera_position.y > side) camera_position.y = side;
-	if (camera_position.y < -side) camera_position.y = -side;
-	if (camera_position.z > side) camera_position.z = side;
-	if (camera_position.z < -side) camera_position.z = -side;
+	if (actualCamera.position.x > side) actualCamera.position.x = side;
+	if (actualCamera.position.x < -side) actualCamera.position.x = -side;
+	if (actualCamera.position.y > side) actualCamera.position.y = side;
+	if (actualCamera.position.y < -side) actualCamera.position.y = -side;
+	if (actualCamera.position.z > side) actualCamera.position.z = side;
+	if (actualCamera.position.z < -side) actualCamera.position.z = -side;
 }
 
 void changeView()
 {
-	direction = vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle), cos(verticalAngle) * cos(horizontalAngle));
-	rightDirection = vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
+	direction = vec3(cos(actualCamera.verticalAngle) * sin(actualCamera.horizontalAngle), sin(actualCamera.verticalAngle), cos(actualCamera.verticalAngle) * cos(actualCamera.horizontalAngle));
+	rightDirection = vec3(sin(actualCamera.horizontalAngle - 3.14f / 2.0f), 0, cos(actualCamera.horizontalAngle - 3.14f / 2.0f));
 	up = cross(rightDirection, direction);
-	view_matrix = lookAt(camera_position, camera_position + direction, up);
-	proj_matrix = perspective(initialFoV - 5 * currentFov, viewportAspect, 0.1f, 1500.0f);
+	view_matrix = lookAt(actualCamera.position, actualCamera.position + direction, up);
+	proj_matrix = perspective(initialFoV - 5 * actualCamera.currentFov, viewportAspect, 0.1f, 1500.0f);
 }
 
 GLuint createProgram(std::string vertex, std::string fragment)
@@ -546,6 +546,38 @@ void My_Init()
 			coord[coordCount - 1].model_matrix = mat4();
 		}
 	}
+	drawCube(5, 5, 5, vec3(20, 0, 470), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(170, 0, 310), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(315, 0, 140), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(470, 0, -20), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(620, 0, -175), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(460, 0, -340), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(290, 0, -480), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(125, 0, -635), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-30, 0, -480), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-180, 0, -305), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-330, 0, -140), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-470, 0, 25), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-625, 0, 170), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-480, 0, 335), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-295, 0, 475), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
+	drawCube(5, 5, 5, vec3(-125, 0, 635), coord, &coordCount);
+	coord[coordCount - 1].model_matrix = mat4();
 
 	//loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
 	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -629,9 +661,9 @@ void My_Init()
 		}
 	}
 	
+	// setting shadow frame buffer
 	glGenFramebuffers(1, &shadowBuffer.fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
-	
 	glGenTextures(1, &shadowBuffer.depthMap);
 	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -639,8 +671,16 @@ void My_Init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowBuffer.depthMap, 0);
+
+	// setting camera
+	cameras[0].position = vec3(600, 300, 600);
+	cameras[0].horizontalAngle = 3.93f;
+	cameras[0].verticalAngle = -0.39f;
+	cameras[1].position = vec3(20, -10, 470);
+	cameras[1].horizontalAngle = 3.14f;
+	cameras[1].verticalAngle = 0.0f;
+	actualCamera = cameras[1];
 
 	if (printOrNot) printf("finish My_Init\n");
 }
@@ -720,16 +760,16 @@ void My_Display()
 	// reset mouse position and calculate angle
 	if (mousePressOrNot) {
 		glutWarpPointer(start.x, start.y);
-		horizontalAngle += mouseSpeed * float(start.x - xpos);
-		verticalAngle += mouseSpeed * float(start.y - ypos);
+		actualCamera.horizontalAngle += mouseSpeed * float(start.x - xpos);
+		actualCamera.verticalAngle += mouseSpeed * float(start.y - ypos);
 	}
 
 	// change view and record time
-	/*if (pastTime > 80) {
-		camera_position = curve[index];
+	if (pastTime > 80) {
+		actualCamera.position = curve[index];
 		index = (index + 1) % 100;
 		pastTime = 0;
-	}*/
+	}
 	changeView();
 	lastTime = currentTime;
 
@@ -839,11 +879,11 @@ void My_MouseWheel(int button, int dir, int x, int y)
 {
 	if (dir > 0)
 	{
-		currentFov += 0.01; // Zoom in
+		actualCamera.currentFov += 0.01; // Zoom in
 	}
 	else
 	{
-		currentFov -= 0.01; // Zoom out
+		actualCamera.currentFov -= 0.01; // Zoom out
 	}
 }
 
@@ -864,33 +904,40 @@ void My_Keyboard(unsigned char key, int x, int y)
 	//if (printOrNot) printf("Key %c is pressed at (%d, %d)\n", key, x, y);
 	if (key == 'd' || key == 'D')
 	{
-		camera_position += rightDirection * deltaTime * speed;
+		actualCamera.position += rightDirection * deltaTime * speed;
 		cameraPositionChecker();
 	}
 	else if (key == 'a' || key == 'A')
 	{
-		camera_position -= rightDirection * deltaTime * speed;
+		actualCamera.position -= rightDirection * deltaTime * speed;
 		cameraPositionChecker();
 	}
 	else if (key == 'w' || key == 'W')
 	{
-		camera_position += direction * deltaTime * speed;
+		actualCamera.position += direction * deltaTime * speed;
 		cameraPositionChecker();
 	}
 	else if (key == 's' || key == 'S')
 	{
-		camera_position -= direction * deltaTime * speed;
+		actualCamera.position -= direction * deltaTime * speed;
 		cameraPositionChecker();
 	}
 	else if (key == 'z' || key == 'Z')
 	{
-		camera_position += up * deltaTime * speed;
+		actualCamera.position += up * deltaTime * speed;
 		cameraPositionChecker();
 	}
 	else if (key == 'x' || key == 'X')
 	{
-		camera_position -= up * deltaTime * speed;
+		actualCamera.position -= up * deltaTime * speed;
 		cameraPositionChecker();
+	}
+	else if (key == 'c' || key == 'C')
+	{
+		Camera temp = actualCamera;
+		actualCamera = cameras[(nowCamera + 1) % cameraCount];
+		cameras[nowCamera] = temp;
+		nowCamera = (nowCamera + 1) % cameraCount;
 	}
 	else if (key == 27) //ESC
 	{
