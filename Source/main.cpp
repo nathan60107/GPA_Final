@@ -816,15 +816,13 @@ void My_Display()
 	}
 
 	// change view and record time
-<<<<<<< HEAD
-	/*if (pastTime > 80) {
-=======
+
 	if (pastTime > cameraSpeed && animateStart) {
->>>>>>> origin/master
+
 		actualCamera.position = curve[index];
 		index = (index + 1) % curve.size();
 		pastTime = 0;
-	}*/
+	}
 	changeView();
 	lastTime = currentTime;
 
