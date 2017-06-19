@@ -1,9 +1,6 @@
 #pragma once
 ///include
 #include "../Externals/Include/Include.h"
-#include "CTexture.h"
-#include "CVertexBufferObject.h"
-#include "CSkybox.h"
 #include <math.h>
 
 ///define
@@ -106,6 +103,11 @@ struct
 		GLint shadowSwitch;
 		GLint blinnPhongSwitch;
 	} parameter;
+	struct
+	{
+		GLint inv_vp_matrix;
+		GLint eye;
+	} skybox;
 } uniforms;
 
 struct
@@ -120,14 +122,14 @@ struct
 	int height;
 } viewportSize;
 
-struct
+/*struct
 {
 	GLint vColor;
 	GLint fAmbientIntensity;
 	GLint vDirection;
 	GLint projectionMatrix;
 	GLint gSampler;
-} skyboxUniform;
+} skyboxUniform;*/
 
 typedef struct
 {
@@ -154,12 +156,12 @@ unsigned int coordCount = 0;
 /// shader
 GLuint program;
 GLuint depthProg;
-GLuint skyBoxProgram;
+//GLuint skyBoxProgram;
 mat4 view_matrix;
 mat4 proj_matrix;
 
 /// sky box
-CSkybox skybox;
+//CSkybox skybox;
 float side = 1000.0f;
 
 /// camera setting
@@ -204,6 +206,11 @@ int fogSwitch = 0;
 int shadowSwitch = 0;
 int blinnPhongSwitch = 0;
 
+///skybox
+GLuint skybox_prog;
+GLuint tex_envmap;
+GLuint skybox_vao;
+
 /// others
 bool printOrNot = true;
 
@@ -231,27 +238,29 @@ const char *skybox_fs_glsl[] =
 
 const char *skybox_vs_glsl[] =
 {
-	"#version 410 core                                         \n"
-	"                                                          \n"
-	"out VS_OUT                                                \n"
-	"{                                                         \n"
-	"    vec3    tc;                                           \n"
-	"} vs_out;                                                 \n"
-	"                                                          \n"
-	"uniform mat4 view_matrix;                                 \n"
-	"                                                          \n"
-	"void main(void)                                           \n"
-	"{                                                         \n"
-	"    vec3[4] vertices = vec3[4](vec3(-1.0, -1.0, 1.0),     \n"
-	"                               vec3( 1.0, -1.0, 1.0),     \n"
-	"                               vec3(-1.0,  1.0, 1.0),     \n"
-	"                               vec3( 1.0,  1.0, 1.0));    \n"
-	"                                                          \n"
-	"    vs_out.tc = mat3(view_matrix) * vertices[gl_VertexID];\n"
-	"                                                          \n"
-	"    gl_Position = vec4(vertices[gl_VertexID], 1.0);       \n"
-	"}                                                         \n"
-	"                                                          \n"
+	"#version 410 core                                              \n"
+	"                                                               \n"
+	"out VS_OUT                                                     \n"
+	"{                                                              \n"
+	"    vec3    tc;                                                \n"
+	"} vs_out;                                                      \n"
+	"                                                               \n"
+	"uniform mat4 inv_vp_matrix;                                    \n"
+	"uniform vec3 eye;                                              \n"
+	"                                                               \n"
+	"void main(void)                                                \n"
+	"{                                                              \n"
+	"    vec4[4] vertices = vec4[4](vec4(-1.0, -1.0, 1.0, 1.0),     \n"
+	"                               vec4( 1.0, -1.0, 1.0, 1.0),     \n"
+	"                               vec4(-1.0,  1.0, 1.0, 1.0),     \n"
+	"                               vec4( 1.0,  1.0, 1.0, 1.0));    \n"
+	"                                                               \n"
+	"    vec4 p = inv_vp_matrix * vertices[gl_VertexID];            \n"
+	"    p /= p.w;                                                  \n"
+	"    vs_out.tc = normalize(p.xyz - eye);                        \n"
+	"                                                               \n"
+	"    gl_Position = vertices[gl_VertexID];                       \n"
+	"}                                                              \n"
 };
 
 ///////////////////////////////////////////////////////////////

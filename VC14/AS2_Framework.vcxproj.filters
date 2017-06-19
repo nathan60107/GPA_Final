@@ -3,9 +3,6 @@
   <ItemGroup>
     <ClCompile Include="..\Source\header_only.cpp" />
     <ClCompile Include="..\Source\main.cpp" />
-    <ClCompile Include="..\Source\CSkybox.cpp" />
-    <ClCompile Include="..\Source\CTexture.cpp" />
-    <ClCompile Include="..\Source\CVertexBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Assets\fragment.fs.glsl" />
@@ -13,9 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\common_header.h" />
-    <ClInclude Include="..\Source\CSkybox.h" />
-    <ClInclude Include="..\Source\CTexture.h" />
-    <ClInclude Include="..\Source\CVertexBufferObject.h" />
     <ClInclude Include="..\Source\main.h" />
   </ItemGroup>
 </Project>

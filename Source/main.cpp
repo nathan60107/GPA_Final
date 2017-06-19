@@ -209,6 +209,7 @@ void changeView()
 	up = cross(rightDirection, direction);
 	view_matrix = lookAt(actualCamera.position, actualCamera.position + direction, up);
 	proj_matrix = perspective(initialFoV - 5 * actualCamera.currentFov, viewportAspect, 0.1f, 1500.0f);
+
 }
 
 GLuint createProgram(std::string vertex, std::string fragment)
@@ -264,10 +265,11 @@ void loadSence(char* objPathInput, char* textuerPathInput, Model* models, unsign
 			pngPath.append(texturePath.C_Str());
 			textureData = loadPNG(pngPath.c_str());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
+			glGenerateMipmap(GL_TEXTURE_2D);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//X軸Y軸的處理方式
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			//glGenerateMipmap(GL_TEXTURE_2D);
 			if (printOrNot) printf("Successly saving material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
@@ -419,11 +421,77 @@ void loadSence(char* objPathInput, char* textuerPathInput, Model* models, unsign
 	*count = *count + 1;
 }
 
+void skyboxInit()
+{
+	skybox_prog = glCreateProgram();
+	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fs, 1, skybox_fs_glsl, NULL);
+	glCompileShader(fs);
+
+	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vs, 1, skybox_vs_glsl, NULL);
+	glCompileShader(vs);
+
+	glAttachShader(skybox_prog, vs);
+	glAttachShader(skybox_prog, fs);
+
+	glLinkProgram(skybox_prog);
+	glUseProgram(skybox_prog);
+
+	uniforms.skybox.inv_vp_matrix = glGetUniformLocation(skybox_prog, "inv_vp_matrix");
+	uniforms.skybox.eye = glGetUniformLocation(skybox_prog, "eye");
+
+	TextureData envmap_data = loadPNG("../TexturedScene/skyboxes/mountaincube.png");
+	glGenTextures(1, &tex_envmap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, tex_envmap);
+	for (int i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, envmap_data.width, envmap_data.height / 6, 0, GL_RGBA, GL_UNSIGNED_BYTE, envmap_data.data + i * (envmap_data.width * (envmap_data.height / 6) * sizeof(unsigned char) * 4));
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	delete[] envmap_data.data;
+
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	glGenVertexArrays(1, &skybox_vao);
+}
+
+void drawSkybox() {
+	static const GLfloat gray[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	static const GLfloat ones[] = { 1.0f };
+	/*float currentTime = glutGet(GLUT_ELAPSED_TIME) * 0.0005f;
+
+	vec3 eye = vec3(0.0f, 0.0f, 0.0f);
+	mat4 view_matrix = lookAt(eye, vec3(15.0f * sinf(currentTime), 7.0f * sinf(currentTime), 15.0f * cosf(currentTime)), vec3(0.0f, 1.0f, 0.0f));
+	mat4 mv_matrix = view_matrix *
+		rotate(mat4(), 0.0f, vec3(1.0f, 0.0f, 0.0f)) *
+		rotate(mat4(), 0.0f, vec3(0.0f, 1.0f, 0.0f)) *
+		translate(mat4(), vec3(0.0f, -4.0f, 0.0f));*/
+	mat4 inv_vp_matrix = inverse(proj_matrix * view_matrix);
+
+	glClearBufferfv(GL_COLOR, 0, gray);
+	glClearBufferfv(GL_DEPTH, 0, ones);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, tex_envmap);
+
+	glUseProgram(skybox_prog);
+	glBindVertexArray(skybox_vao);
+
+	glUniformMatrix4fv(uniforms.skybox.inv_vp_matrix, 1, GL_FALSE, &inv_vp_matrix[0][0]);
+	glUniform3fv(uniforms.skybox.eye, 1, &actualCamera.position[0]);
+
+	glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glEnable(GL_DEPTH_TEST);
+}
+
 void My_Init()
 {
 	glClearColor(0.0f, 0.6f, 0.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	skyboxInit();
 
 	// ----- Begin Initialize Depth Shader Program -----
 	GLuint shadow_vs;
@@ -464,17 +532,6 @@ void My_Init()
 	uniforms.parameter.shadowSwitch = glGetUniformLocation(program, "shadowSwitch");
 	uniforms.parameter.blinnPhongSwitch = glGetUniformLocation(program, "blinnPhongSwitch");
 	// ----- End Initialize Blinn-Phong Shader Program -----
-
-	// ----- Begin Initialize Sky Box -----
-	string dir = "../TexturedScene/skyboxes/jajlands1/";
-	string front = "jajlands1_ft.jpg";
-	string back = "jajlands1_bk.jpg";
-	string left = "jajlands1_lf.jpg";
-	string right = "jajlands1_rt.jpg";
-	string top = "jajlands1_up.jpg";
-	string bottom = "jajlands1_dn.jpg";
-	skybox.loadSkybox(dir, front, back, left, right, top, bottom);
-	// ---- - End Initialize Sky Box---- -
 
 	// ----- Begin Initialize Scene Model -----
 	// street
@@ -593,8 +650,8 @@ void My_Init()
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
-	/*loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
-	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	//loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
 	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
@@ -695,8 +752,8 @@ void My_Display()
 	);
 	
 	// ----- Begin Shadow Map Pass -----
-	vec3 lightPosition = vec3(20.0f, 20.0f, 20.0f);
-	mat4 light_proj_matrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
+	vec3 lightPosition = vec3(750.0f, 750.0f, 20.0f); 
+	mat4 light_proj_matrix = ortho(-750, 750, -750, 750, -750, 750);//frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f); //ortho()
 	mat4 light_view_matrix = lookAt(lightPosition, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix;
 
@@ -725,26 +782,32 @@ void My_Display()
 			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
 	}
+
+	// draw grass
+	for (int i = 0; i < grassCount; i++) {
+		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *grass[i].model_matrix));
+		glActiveTexture(GL_TEXTURE0);
+		glBindVertexArray(grass[i].shapes[0].vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
 	glDisable(GL_POLYGON_OFFSET_FILL);
 	// ----- End Shadow Map Pass -----
 
 	// ----- Begin Blinn-Phong Shading Pass -----
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
 	glViewport(0, 0, viewportSize.width, viewportSize.height);
+	drawSkybox();
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
-
-	glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, value_ptr(proj_matrix));
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
 	glUniform1i(uniforms.view.shadow_tex, 1);
 	glUniform3fv(uniforms.light.light_pos, 3, value_ptr(lightPosition));
-	
-	// draw sky box
-	//skybox.renderSkybox();
-	//glClear(GL_DEPTH_BUFFER_BIT);
+	glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, value_ptr(proj_matrix));
 
 	// calculate elapsed time
 	static double lastTime = glutGet(GLUT_ELAPSED_TIME);
@@ -760,11 +823,11 @@ void My_Display()
 	}
 
 	// change view and record time
-	if (pastTime > 80) {
+	/*if (pastTime > 80) {
 		actualCamera.position = curve[index];
 		index = (index + 1) % 100;
 		pastTime = 0;
-	}
+	}*/
 	changeView();
 	lastTime = currentTime;
 
@@ -952,10 +1015,9 @@ void My_Menu(int id)
 	{
 	case FOG:
 		glUniform1i(uniforms.parameter.fogSwitch, (++fogSwitch)%2);
-		printf("fog %d\n", fogSwitch);
 		break;
 	case SHADOW:
-		glUniform1i(uniforms.parameter.shadowSwitch, (++shadowSwitch)%2);
+		glUniform1i(uniforms.parameter.shadowSwitch, ++shadowSwitch);// (++shadowSwitch) % 2);
 		break;
 	case BLINNPHONG:
 		glUniform1i(uniforms.parameter.blinnPhongSwitch, (++blinnPhongSwitch)%2);
