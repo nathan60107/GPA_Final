@@ -402,7 +402,7 @@ void My_Init()
 	glAttachShader(depthProg, shadow_vs);
 	glAttachShader(depthProg, shadow_fs);
 	glLinkProgram(depthProg);
-	uniforms_shadow.light.mvp = glGetUniformLocation(depthProg, "mvp");
+	uniforms.light.mvp = glGetUniformLocation(depthProg, "mvp");
 	// ----- End Initialize Depth Shader Program -----
 
 
@@ -412,18 +412,21 @@ void My_Init()
 	glUseProgram(program);
 
 	// get uniform location
-	um4v = glGetUniformLocation(program, "um4v");
-	um4mv = glGetUniformLocation(program, "um4mv");
-	um4p = glGetUniformLocation(program, "um4p");
-	um4m = glGetUniformLocation(program, "um4m");
-	us2dtex = glGetUniformLocation(program, "tex");
-	uniforms_shadow.view.shadow_matrix = glGetUniformLocation(program, "shadow_matrix");
-	uniforms_shadow.view.shadow_tex = glGetUniformLocation(program, "shadow_tex");
-	uniforms_shadow.light.diffuse = glGetUniformLocation(program, "diffuse_albedo");
-	uniforms_shadow.light.specular = glGetUniformLocation(program, "specular_albedo");
-	uniforms_shadow.light.ambient = glGetUniformLocation(program, "ambient");
-	uniforms_shadow.light.shininess = glGetUniformLocation(program, "specular_power");
-	uniforms_shadow.light.light_pos = glGetUniformLocation(program, "light_pos");
+	uniforms.blinnPhong.um4v = glGetUniformLocation(program, "um4v");
+	uniforms.blinnPhong.um4mv = glGetUniformLocation(program, "um4mv");
+	uniforms.blinnPhong.um4p = glGetUniformLocation(program, "um4p");
+	uniforms.blinnPhong.um4m = glGetUniformLocation(program, "um4m");
+	uniforms.blinnPhong.us2dtex = glGetUniformLocation(program, "tex");
+	uniforms.view.shadow_matrix = glGetUniformLocation(program, "shadow_matrix");
+	uniforms.view.shadow_tex = glGetUniformLocation(program, "shadow_tex");
+	uniforms.blinnPhong.diffuse = glGetUniformLocation(program, "diffuse_albedo");
+	uniforms.blinnPhong.specular = glGetUniformLocation(program, "specular_albedo");
+	uniforms.blinnPhong.ambient = glGetUniformLocation(program, "ambient");
+	uniforms.blinnPhong.shininess = glGetUniformLocation(program, "specular_power");
+	uniforms.light.light_pos = glGetUniformLocation(program, "light_pos");
+	uniforms.parameter.fogSwitch = glGetUniformLocation(program, "fogSwitch");
+	uniforms.parameter.shadowSwitch = glGetUniformLocation(program, "shadowSwitch");
+	uniforms.parameter.blinnPhongSwitch = glGetUniformLocation(program, "blinnPhongSwitch");
 	// ----- End Initialize Blinn-Phong Shader Program -----
 
 	// ----- Begin Initialize Sky Box -----
@@ -502,8 +505,8 @@ void My_Init()
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
-	//loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
-	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
+	/*loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
 	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
@@ -614,7 +617,7 @@ void My_Display()
 
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
-		glUniformMatrix4fv(uniforms_shadow.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *models[m].model_matrix));
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *models[m].model_matrix));
 		glActiveTexture(GL_TEXTURE0);
 
 		// draw
@@ -636,16 +639,16 @@ void My_Display()
 	glUseProgram(program);
 	
 
-	glUniformMatrix4fv(um4p, 1, GL_FALSE, value_ptr(proj_matrix));
+	glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, value_ptr(proj_matrix));
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthMap);
-	glUniform1i(uniforms_shadow.view.shadow_tex, 1);
-	glUniform3fv(uniforms_shadow.light.light_pos, 3, value_ptr(lightPosition));
+	glUniform1i(uniforms.view.shadow_tex, 1);
+	glUniform3fv(uniforms.light.light_pos, 3, value_ptr(lightPosition));
 	
 	// draw sky box
-	skybox.renderSkybox();
-	glClear(GL_DEPTH_BUFFER_BIT);
+	//skybox.renderSkybox();
+	//glClear(GL_DEPTH_BUFFER_BIT);
 
 	// calculate elapsed time
 	static double lastTime = glutGet(GLUT_ELAPSED_TIME);
@@ -675,14 +678,14 @@ void My_Display()
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * models[m].model_matrix;
-		glUniformMatrix4fv(uniforms_shadow.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
-		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
-		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
-		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glUniformMatrix4fv(um4m, 1, GL_FALSE, value_ptr(models[m].model_matrix));
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(models[m].model_matrix));
 
 		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(us2dtex, 0);
+		glUniform1i(uniforms.blinnPhong.us2dtex, 0);
 		
 		// draw
 		for (int i = 0; i < models[m].shapes.size(); ++i)
@@ -691,10 +694,10 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
 			int materialID = models[m].shapes[i].materialID;
 
-			glUniform3f(uniforms_shadow.light.ambient, models[m].materials[materialID].ambient[0], models[m].materials[materialID].ambient[1], models[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms_shadow.light.diffuse, models[m].materials[materialID].diffuse[0], models[m].materials[materialID].diffuse[1], models[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms_shadow.light.shininess, models[m].materials[materialID].shininess);
-			glUniform3f(uniforms_shadow.light.specular, models[m].materials[materialID].specular[0], models[m].materials[materialID].specular[1], models[m].materials[materialID].specular[2]);
+			glUniform3f(uniforms.blinnPhong.ambient, models[m].materials[materialID].ambient[0], models[m].materials[materialID].ambient[1], models[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms.blinnPhong.diffuse, models[m].materials[materialID].diffuse[0], models[m].materials[materialID].diffuse[1], models[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms.blinnPhong.shininess, models[m].materials[materialID].shininess);
+			glUniform3f(uniforms.blinnPhong.specular, models[m].materials[materialID].specular[0], models[m].materials[materialID].specular[1], models[m].materials[materialID].specular[2]);
 
 			glBindTexture(GL_TEXTURE_2D, models[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
@@ -702,8 +705,8 @@ void My_Display()
 	}
 	for (int i = 0; i < 441; i++) {
 		mat4 mv_matrix = view_matrix * coord[i].model_matrix;
-		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
-		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glBindVertexArray(coord[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
@@ -731,13 +734,13 @@ void My_Mouse(int button, int state, int x, int y)
 
 	if (state == GLUT_DOWN)
 	{
-		if (printOrNot) printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
+		//if (printOrNot) printf("Mouse %d is pressed at (%d, %d)\n", button, x, y);
 		mousePressOrNot = 1;
 		start = vec2(x, y);
 	}
 	else if (state == GLUT_UP)
 	{
-		if (printOrNot) printf("Mouse %d is released at (%d, %d)\n", button, x, y);
+		//if (printOrNot) printf("Mouse %d is released at (%d, %d)\n", button, x, y);
 		mousePressOrNot = 0;
 	}
 }
@@ -768,7 +771,7 @@ void My_MotionMouse(int x, int y)
 
 void My_Keyboard(unsigned char key, int x, int y)
 {
-	if (printOrNot) printf("Key %c is pressed at (%d, %d)\n", key, x, y);
+	//if (printOrNot) printf("Key %c is pressed at (%d, %d)\n", key, x, y);
 	if (key == 'd' || key == 'D')
 	{
 		camera_position += rightDirection * deltaTime * speed;
@@ -826,7 +829,7 @@ void My_SpecialKeys(int key, int x, int y)
 
 		break;
 	default:
-		if (printOrNot) printf("Other special key is pressed at (%d, %d)\n", x, y);
+		//if (printOrNot) printf("Other special key is pressed at (%d, %d)\n", x, y);
 		break;
 	}
 }
@@ -835,6 +838,16 @@ void My_Menu(int id)
 {
 	switch (id)
 	{
+	case FOG:
+		glUniform1i(uniforms.parameter.fogSwitch, (++fogSwitch)%2);
+		printf("fog %d\n", fogSwitch);
+		break;
+	case SHADOW:
+		glUniform1i(uniforms.parameter.shadowSwitch, (++shadowSwitch)%2);
+		break;
+	case BLINNPHONG:
+		glUniform1i(uniforms.parameter.blinnPhongSwitch, (++blinnPhongSwitch)%2);
+		break;
 	case MENU_TIMER_START:
 		if (!timer_enabled)
 		{
@@ -869,7 +882,7 @@ int main(int argc, char *argv[])
 #endif
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(600, 600);
-	glutCreateWindow("AS2_Framework");
+	glutCreateWindow("GPA_Final_Framework");
 #ifdef _MSC_VER
 	glewInit();
 #endif
@@ -877,19 +890,22 @@ int main(int argc, char *argv[])
 	My_Init();
 
 	// Create a menu and bind it to mouse right button.
-	/*int menu_main = glutCreateMenu(My_Menu);
-	int menu_timer = glutCreateMenu(My_Menu);
+	int menu_main = glutCreateMenu(My_Menu);
+	//int menu_timer = glutCreateMenu(My_Menu);
 
 	glutSetMenu(menu_main);
-	glutAddSubMenu("Timer", menu_timer);
+	glutAddMenuEntry("fog", FOG);
+	glutAddMenuEntry("shadow", SHADOW);
+	glutAddMenuEntry("blinn Phong", BLINNPHONG);
+	//glutAddSubMenu("Timer", menu_timer);
 	glutAddMenuEntry("Exit", MENU_EXIT);
 
-	glutSetMenu(menu_timer);
+	/*glutSetMenu(menu_timer);
 	glutAddMenuEntry("Start", MENU_TIMER_START);
-	glutAddMenuEntry("Stop", MENU_TIMER_STOP);
+	glutAddMenuEntry("Stop", MENU_TIMER_STOP);*/
 
 	glutSetMenu(menu_main);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);*/
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	// Register GLUT callback functions.
 	glutDisplayFunc(My_Display);

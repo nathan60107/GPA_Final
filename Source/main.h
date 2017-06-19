@@ -10,6 +10,9 @@
 #define MENU_TIMER_START 1
 #define MENU_TIMER_STOP 2
 #define MENU_EXIT 3
+#define FOG 4
+#define SHADOW 5
+#define BLINNPHONG 6
 #define SHADOW_MAP_SIZE 4096
 
 ///using namespace
@@ -45,7 +48,7 @@ typedef struct Model {
 	vec3 center;
 } Model;
 
-struct
+/*struct
 {
 	struct
 	{
@@ -57,7 +60,7 @@ struct
 		GLint view_matrix;
 		GLint eye_position;
 	} skybox;
-} uniforms;
+} uniforms;*/
 
 typedef struct _TextureData
 {
@@ -78,22 +81,32 @@ struct
 	struct
 	{
 		GLint mvp;
-		GLint diffuse;
-		GLint specular;
-		GLint ambient;
-		GLint shininess;
 		GLint light_pos;
 	} light;
 	struct
 	{
 		GLuint  shadow_tex;
-		GLint   mv_matrix;
-		GLint   proj_matrix;
 		GLint   shadow_matrix;
-		GLint   full_shading;
-		GLint   light_matrix;
 	} view;
-} uniforms_shadow;
+	struct
+	{
+		GLint um4v;
+		GLint um4mv;
+		GLint um4p;
+		GLint um4m;
+		GLint us2dtex;
+		GLint diffuse;
+		GLint specular;
+		GLint ambient;
+		GLint shininess;
+	} blinnPhong;
+	struct
+	{
+		GLint fogSwitch;
+		GLint shadowSwitch;
+		GLint blinnPhongSwitch;
+	} parameter;
+} uniforms;
 
 struct
 {
@@ -133,11 +146,6 @@ unsigned int coordIndex = 0;
 GLuint program;
 GLuint depthProg;
 GLuint skyBoxProgram;
-GLint um4v;
-GLint um4mv;
-GLint um4p;
-GLint um4m;
-GLint us2dtex;
 mat4 view_matrix;
 mat4 proj_matrix;
 
@@ -180,8 +188,14 @@ vec2 start;
 int xpos, ypos;
 bool mousePressOrNot = false;
 
+///Special effects switch parameters(not location)
+int fogSwitch = 0;
+int shadowSwitch = 0;
+int blinnPhongSwitch = 0;
+
 /// others
 bool printOrNot = true;
+
 
 /// sky box shader
 const char *skybox_fs_glsl[] =

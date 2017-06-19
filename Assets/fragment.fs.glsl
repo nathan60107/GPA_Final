@@ -9,12 +9,15 @@ uniform vec3 diffuse_albedo = vec3(0.9, 0.8, 1.0);//顏色鮮明度
 uniform vec3 specular_albedo = vec3(0.7);//光點會不會亮
 uniform float specular_power = 300.0;//光點範圍
 uniform vec3 ambient;
-uniform bool full_shading = true;	
+uniform bool full_shading = true;
+uniform int fogSwitch = 0;
+uniform int shadowSwitch = 0;
+uniform int blinnPhongSwitch = 0;
 
-uniform int fog_type = 1;
+uniform int fog_type = 2;
 const vec4 fogColor= vec4(0.5, 0.5,0.5,1.0);
 float fogFactor= 0;
-float fogDensity= 0.2f;
+float fogDensity= 0.008f;
 float fog_start= 1;
 float fog_end= 6.0f;
 
@@ -42,7 +45,7 @@ void main()
 	vec3 specular = pow(max(dot(N, H), 0.0), specular_power) * specular_albedo;
 	
     vec3 texColor = texture(tex,vertexData.texcoord).rgb;
-    fragColor = vec4(texColor, 1.0) /* vec4(diffuse + specular, 1.0)*/;
+    fragColor = vec4(texColor, 1.0) * ((blinnPhongSwitch==1)?vec4(diffuse + specular, 1.0):vec4(1));/* vec4(diffuse + specular, 1.0)*/;
 	
 	float dist= length(vertexData.viewSpace_coord);
 	switch(fog_type)
@@ -58,7 +61,7 @@ void main()
 		break;
 	}
 	fogFactor = clamp( fogFactor, 0.0, 1.0 );
-	//fragColor= mix(fogColor,fragColor,fogFactor);
+	if(fogSwitch==1)fragColor= mix(fogColor,fragColor,fogFactor);
 	
-	//fragColor += textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0);
+	if(shadowSwitch==1)fragColor += textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0);
 }
