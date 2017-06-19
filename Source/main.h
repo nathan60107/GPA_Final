@@ -135,12 +135,13 @@ bool timer_enabled = true;
 unsigned int timer_speed = 16;
 
 /// models
-Model models[50];
-unsigned int materialsCount = 0;
-unsigned int shapeIndex = 0;
-unsigned int shapeIndexCount = 0;
+Model streets[16]; 
+unsigned int streetCount = 0;
+Model grass[225];
+Material grassTexture;
+unsigned int grassCount = 0;
 Model coord[441];
-unsigned int coordIndex = 0;
+unsigned int coordCount = 0;
 
 /// shader
 GLuint program;

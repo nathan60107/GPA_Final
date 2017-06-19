@@ -78,11 +78,11 @@ TextureData loadPNG(const char* const pngFilepath)
 	return texture;
 }
 
-void drawCube(float width, float height, float length, vec3 center)
+void drawCube(float width, float height, float length, vec3 center, Model* models, unsigned int* count)
 {
-	coord[coordIndex].shapes.push_back(Shape());
-	glGenVertexArrays(1, &coord[coordIndex].shapes[0].vao);
-	glBindVertexArray(coord[coordIndex].shapes[0].vao);
+	models[*count].shapes.push_back(Shape());
+	glGenVertexArrays(1, &models[*count].shapes[0].vao);
+	glBindVertexArray(models[*count].shapes[0].vao);
 
 	// create data
 	GLfloat x = center.x;
@@ -143,15 +143,53 @@ void drawCube(float width, float height, float length, vec3 center)
 	};
 
 	// put data to buffer
-	glGenBuffers(1, &coord[coordIndex].shapes[0].vbo_position);
-	glBindBuffer(GL_ARRAY_BUFFER, coord[coordIndex].shapes[0].vbo_position);
+	glGenBuffers(1, &models[*count].shapes[0].vbo_position);
+	glBindBuffer(GL_ARRAY_BUFFER, models[*count].shapes[0].vbo_position);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
 
 	// set vao format
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
 
-	coordIndex++;
+	*count = *count + 1;
+}
+
+void drawSquare(float width, float height, vec2 center, Model* models, unsigned int* count)
+{
+	models[*count].shapes.push_back(Shape());
+	glGenVertexArrays(1, &models[*count].shapes[0].vao);
+	glBindVertexArray(models[*count].shapes[0].vao);
+
+	// create data
+	GLfloat x = center.x;
+	GLfloat y = center.y;
+	width /= 2;
+	height /= 2;
+	GLfloat vertex[] =
+	{
+		x - width, -20, y + height, 0, 0, 0, 1, 0,
+		x - width, -20, y - height, 0, 1, 0, 1, 0,
+		x + width, -20, y - height, 1, 1, 0, 1, 0,
+
+		x + width, -20, y - height, 1, 1, 0, 1, 0,
+		x + width, -20, y + height, 1, 0, 0, 1, 0,
+		x - width, -20, y + height, 0, 0, 0, 1, 0
+	};
+
+	// put data to buffer
+	glGenBuffers(1, &models[*count].shapes[0].vbo_position);
+	glBindBuffer(GL_ARRAY_BUFFER, models[*count].shapes[0].vbo_position);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
+
+	// set vao format
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const void*)(sizeof(GLfloat) * 3));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const void*)(sizeof(GLfloat) * 5));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
+	*count = *count + 1;
 }
 
 void cameraPositionChecker()
@@ -194,9 +232,9 @@ GLuint createProgram(std::string vertex, std::string fragment)
 	return prog;
 }
 
-void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceIndexInput, vec3 center, vec3 scale)
+void loadSence(char* objPathInput, char* textuerPathInput, Model* models, unsigned int* count, vec3 center, vec3 scale)
 {
-	printf("----------------------------\nStart to load sence %d.\n", senceIndexInput);
+	printf("----------------------------\nStart to load sence %d.\n", *count);
 
 	const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 	const aiScene* scene = aiImportFile(objPathInput, aiProcessPreset_TargetRealtime_MaxQuality);
@@ -206,8 +244,8 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 		printf("\n");
 		return;
 	}
-	models[senceIndexInput].materials.resize(scene->mNumMaterials);
-	models[senceIndexInput].shapes.resize(scene->mNumMeshes);
+	models[*count].materials.resize(scene->mNumMaterials);
+	models[*count].shapes.resize(scene->mNumMeshes);
 
 	// load materials
 	for (unsigned int i = 0; i< scene->mNumMaterials; ++i)
@@ -220,8 +258,8 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == aiReturn_SUCCESS)
 		{
 			// load width, height and data from texturePath.C_Str();
-			glGenTextures(1, &models[senceIndexInput].materials[i].diffuse_tex);
-			glBindTexture(GL_TEXTURE_2D, models[senceIndexInput].materials[i].diffuse_tex);
+			glGenTextures(1, &models[*count].materials[i].diffuse_tex);
+			glBindTexture(GL_TEXTURE_2D, models[*count].materials[i].diffuse_tex);
 			pngPath.append(textuerPathInput);
 			pngPath.append(texturePath.C_Str());
 			textureData = loadPNG(pngPath.c_str());
@@ -239,25 +277,24 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			//material.diffuse_tex = default_diffuse_tex;
 			printf("Fail to save material %d. Texture name = %s.\n", i, texturePath.C_Str());
 		}
-		materialsCount++;
 
 		aiColor3D color(0.f, 0.f, 0.f);
 		if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS) {
-			models[senceIndexInput].materials[i].diffuse = color;
+			models[*count].materials[i].diffuse = color;
 			//cout << "DIFFUSE" << " " << color.r << " " << color.g << " " << color.b << endl;
 		}
 		else {
 			//cout << "DIFFUSE NOT FOUND<----------------------------ERROR!!"<< endl;
 		}
 		if (material->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS) {
-			models[senceIndexInput].materials[i].specular = color;
+			models[*count].materials[i].specular = color;
 			//cout << "SPECULAR" << " " << color.r << " " << color.g << " " << color.b << endl;
 		}
 		else {
 			//cout << "SPECULAR NOT FOUND<----------------------------ERROR!!" << endl;
 		}
 		if (material->Get(AI_MATKEY_COLOR_AMBIENT, color) == aiReturn_SUCCESS) {
-			models[senceIndexInput].materials[i].ambient = color;
+			models[*count].materials[i].ambient = color;
 			//cout << "AMBIENT" << " " << color.r << " " << color.g << " " << color.b << endl;
 		}
 		else {
@@ -265,7 +302,7 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 		}
 		float c;
 		if (material->Get(AI_MATKEY_SHININESS, c) == aiReturn_SUCCESS) {
-			models[senceIndexInput].materials[i].shininess = c;
+			models[*count].materials[i].shininess = c;
 			//cout << "SHININESS" << " " << c << endl;
 		}
 		else {
@@ -288,7 +325,7 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			}
 		}
 	}
-	models[senceIndexInput].center = c;
+	models[*count].center = c;
 	
 	// load geometry
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
@@ -297,8 +334,8 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 		float temp[4][50000];
 		int tempInt[50000];
 		
-		glGenVertexArrays(1, &models[senceIndexInput].shapes[i].vao);
-		glBindVertexArray(models[senceIndexInput].shapes[i].vao);
+		glGenVertexArrays(1, &models[*count].shapes[i].vao);
+		glBindVertexArray(models[*count].shapes[i].vao);
 		
 		if (mesh != nullptr) {
 			int errorCount[2] = { 0 };
@@ -340,20 +377,20 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 			if (errorCount[0] != 0)printf("ERROR!! Normals not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[0]);
 			if (errorCount[1] != 0)printf("ERROR!! TextureCoords not found %d time(s), replace by vec(0, 0, 0).\n", errorCount[1]);
 
-			glGenBuffers(1, &models[senceIndexInput].shapes[i].vbo_position);
-			glBindBuffer(GL_ARRAY_BUFFER, models[senceIndexInput].shapes[i].vbo_position);
+			glGenBuffers(1, &models[*count].shapes[i].vbo_position);
+			glBindBuffer(GL_ARRAY_BUFFER, models[*count].shapes[i].vbo_position);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, temp[0], GL_STATIC_DRAW);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(0);
 
-			glGenBuffers(1, &models[senceIndexInput].shapes[i].vbo_normal);
-			glBindBuffer(GL_ARRAY_BUFFER, models[senceIndexInput].shapes[i].vbo_normal);
+			glGenBuffers(1, &models[*count].shapes[i].vbo_normal);
+			glBindBuffer(GL_ARRAY_BUFFER, models[*count].shapes[i].vbo_normal);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices, temp[1], GL_STATIC_DRAW);
 			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(2);
 
-			glGenBuffers(1, &models[senceIndexInput].shapes[i].vbo_texcoord);
-			glBindBuffer(GL_ARRAY_BUFFER, models[senceIndexInput].shapes[i].vbo_texcoord);
+			glGenBuffers(1, &models[*count].shapes[i].vbo_texcoord);
+			glBindBuffer(GL_ARRAY_BUFFER, models[*count].shapes[i].vbo_texcoord);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * mesh->mNumVertices, temp[2], GL_STATIC_DRAW);
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(1);
@@ -367,20 +404,19 @@ void loadSence(char* objPathInput, char* textuerPathInput, unsigned int senceInd
 				tempInt[f * 3 + 2] = mesh->mFaces[f].mIndices[2];
 			}
 
-			glGenBuffers(1, &models[senceIndexInput].shapes[i].ibo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[senceIndexInput].shapes[i].ibo);
+			glGenBuffers(1, &models[*count].shapes[i].ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[*count].shapes[i].ibo);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3 * mesh->mNumFaces, tempInt, GL_STATIC_DRAW);
 			
 			// save shape info
-			models[senceIndexInput].shapes[i].materialID = mesh->mMaterialIndex;
-			models[senceIndexInput].shapes[i].drawCount = mesh->mNumFaces * 3;
+			models[*count].shapes[i].materialID = mesh->mMaterialIndex;
+			models[*count].shapes[i].drawCount = mesh->mNumFaces * 3;
 			if (printOrNot) printf("Successly saving shapes %d.\n", i);
 		}
 	}
-
-	shapeIndexCount++;
-	printf("Loading sence %d completes.\n----------------------------\n", senceIndexInput);
+	printf("Loading sence %d completes.\n----------------------------\n", *count);
 	aiReleaseImport(scene);
+	*count = *count + 1;
 }
 
 void My_Init()
@@ -441,56 +477,76 @@ void My_Init()
 	// ---- - End Initialize Sky Box---- -
 
 	// ----- Begin Initialize Scene Model -----
+	// street
 	mat4 matrix;
-	loadSence("../TexturedScene/scene/old fashion town/old town block.obj", "../TexturedScene/scene/old fashion town/", shapeIndexCount, vec3(0, 0, 0), vec3(0.5));
-	models[shapeIndexCount - 1].model_matrix = translate(matrix, vec3(75, 0, 355));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	loadSence("../TexturedScene/scene/old fashion town/old town block.obj", "../TexturedScene/scene/old fashion town/", streets, &streetCount, vec3(0, 0, 0), vec3(0.5));
+	streets[streetCount - 1].model_matrix = translate(matrix, vec3(75, 0, 355));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(35, 0, -590));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(35, 0, -590));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-583, 0, -247));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-583, 0, -247));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(394, 0, 342));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(394, 0, 342));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-284, 0, -577));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
-	models[shapeIndexCount++].model_matrix = translate(mat4(), vec3(-570, 0, 72));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-284, 0, -577));
+	streets[streetCount] = streets[streetCount - 1];
+	streets[streetCount++].model_matrix = translate(mat4(), vec3(-570, 0, 72));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(381, 0, 23));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
-	models[shapeIndexCount++].model_matrix = translate(mat4(), vec3(-271, 0, -258));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(381, 0, 23));
+	streets[streetCount] = streets[streetCount - 1];
+	streets[streetCount++].model_matrix = translate(mat4(), vec3(-271, 0, -258));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(82, 0, 353));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
-	models[shapeIndexCount++].model_matrix = translate(mat4(), vec3(28, 0, -588));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(82, 0, 353));
+	streets[streetCount] = streets[streetCount - 1];
+	streets[streetCount++].model_matrix = translate(mat4(), vec3(28, 0, -588));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-581, 0, -240));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-581, 0, -240));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(392, 0, 335));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(392, 0, 335));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-282, 0, -570));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-282, 0, -570));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-563, 0, 70));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
-	models[shapeIndexCount++].model_matrix = translate(mat4(), vec3(374, 0, 25));
-	models[shapeIndexCount] = models[shapeIndexCount - 1];
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-563, 0, 70));
+	streets[streetCount] = streets[streetCount - 1];
+	streets[streetCount++].model_matrix = translate(mat4(), vec3(374, 0, 25));
+	streets[streetCount] = streets[streetCount - 1];
 	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	models[shapeIndexCount++].model_matrix = translate(matrix, vec3(-264, 0, -260));
-	for (int i = -10; i <= 10; i++) {
-		for (int j = -10; j <= 10; j++) {
-			drawCube(1, 1, 1, vec3(i * 100, 0, j * 100));
-			coord[coordIndex - 1].model_matrix = mat4();
+	streets[streetCount++].model_matrix = translate(matrix, vec3(-264, 0, -260));
+	
+	// grass
+	for (int i = -7; i <= 7; i++) {
+		for (int j = -7; j <= 7; j++) {
+			drawSquare(100, 100, vec2(i * 100, j * 100), grass, &grassCount);
+			grass[grassCount - 1].model_matrix = mat4();
 		}
 	}
+	TextureData textureData = loadPNG("../TexturedScene/scene/grass.jpg");
+	glGenTextures(1, &grassTexture.diffuse_tex);
+	glBindTexture(GL_TEXTURE_2D, grassTexture.diffuse_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// coordinate
+	for (int i = -10; i <= 10; i++) {
+		for (int j = -10; j <= 10; j++) {
+			drawCube(1, 1, 1, vec3(i * 100, 0, j * 100), coord, &coordCount);
+			coord[coordCount - 1].model_matrix = mat4();
+		}
+	}
+
 	//loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
 	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
 	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(5, -2, 38.5), vec3(0.57, 0.5, 0.5));
@@ -597,6 +653,7 @@ void My_Display()
 		vec4(0.0f, 0.0f, 0.5f, 0.0f),
 		vec4(0.5f, 0.5f, 0.5f, 1.0f)
 	);
+	
 	// ----- Begin Shadow Map Pass -----
 	vec3 lightPosition = vec3(20.0f, 20.0f, 20.0f);
 	mat4 light_proj_matrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f);
@@ -613,19 +670,24 @@ void My_Display()
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(4.0f, 4.0f);
 	
-	for (int m = 0; m < shapeIndexCount; ++m) {
+	for (int m = 0; m < streetCount; ++m) {
 
 		// transmit uniform variable
+<<<<<<< HEAD
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *models[m].model_matrix));
+=======
+		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
+		glUniformMatrix4fv(uniforms_shadow.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
+>>>>>>> origin/master
 		glActiveTexture(GL_TEXTURE0);
 
 		// draw
-		for (int i = 0; i < models[m].shapes.size(); ++i)
+		for (int i = 0; i < streets[m].shapes.size(); ++i)
 		{
-			glBindVertexArray(models[m].shapes[i].vao);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
-			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+			glBindVertexArray(streets[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
+			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
 	}
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -637,7 +699,6 @@ void My_Display()
 	
 	glViewport(0, 0, viewportSize.width, viewportSize.height);
 	glUseProgram(program);
-	
 
 	glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, value_ptr(proj_matrix));
 
@@ -672,10 +733,11 @@ void My_Display()
 	changeView();
 	lastTime = currentTime;
 
-	// draw models
-	for (int m = 0; m < shapeIndexCount; ++m) {
+	// draw streets
+	for (int m = 0; m < streetCount; ++m) {
 		
 		// transmit uniform variable
+<<<<<<< HEAD
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * models[m].model_matrix;
 		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
@@ -683,33 +745,62 @@ void My_Display()
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(models[m].model_matrix));
+=======
+		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * streets[m].model_matrix;
+		glUniformMatrix4fv(uniforms_shadow.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(um4m, 1, GL_FALSE, value_ptr(streets[m].model_matrix));
+>>>>>>> origin/master
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(uniforms.blinnPhong.us2dtex, 0);
 		
 		// draw
-		for (int i = 0; i < models[m].shapes.size(); ++i)
+		for (int i = 0; i < streets[m].shapes.size(); ++i)
 		{
-			glBindVertexArray(models[m].shapes[i].vao);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[m].shapes[i].ibo);
-			int materialID = models[m].shapes[i].materialID;
+			glBindVertexArray(streets[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
+			int materialID = streets[m].shapes[i].materialID;
 
+<<<<<<< HEAD
 			glUniform3f(uniforms.blinnPhong.ambient, models[m].materials[materialID].ambient[0], models[m].materials[materialID].ambient[1], models[m].materials[materialID].ambient[2]);
 			glUniform3f(uniforms.blinnPhong.diffuse, models[m].materials[materialID].diffuse[0], models[m].materials[materialID].diffuse[1], models[m].materials[materialID].diffuse[2]);
 			glUniform1f(uniforms.blinnPhong.shininess, models[m].materials[materialID].shininess);
 			glUniform3f(uniforms.blinnPhong.specular, models[m].materials[materialID].specular[0], models[m].materials[materialID].specular[1], models[m].materials[materialID].specular[2]);
+=======
+			glUniform3f(uniforms_shadow.light.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms_shadow.light.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms_shadow.light.shininess, streets[m].materials[materialID].shininess);
+			glUniform3f(uniforms_shadow.light.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
+>>>>>>> origin/master
 
-			glBindTexture(GL_TEXTURE_2D, models[m].materials[materialID].diffuse_tex);
-			glDrawElements(GL_TRIANGLES, models[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+			glBindTexture(GL_TEXTURE_2D, streets[m].materials[materialID].diffuse_tex);
+			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
 	}
-	for (int i = 0; i < 441; i++) {
+
+	// draw grass
+	glBindTexture(GL_TEXTURE_2D, grassTexture.diffuse_tex);
+	for (int i = 0; i < grassCount; i++) {
+		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
+		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glBindVertexArray(grass[i].shapes[0].vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	// draw coordinates
+	for (int i = 0; i < coordCount; i++) {
 		mat4 mv_matrix = view_matrix * coord[i].model_matrix;
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glBindVertexArray(coord[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+
 	// ----- End Begin Blinn-Phong Shading Pass -----
 	glutSwapBuffers();
 }
@@ -801,10 +892,6 @@ void My_Keyboard(unsigned char key, int x, int y)
 	{
 		camera_position -= up * deltaTime * speed;
 		cameraPositionChecker();
-	}
-	else if (key == 'c' || key == 'C')
-	{
-		shapeIndex = (shapeIndex + 1) % shapeIndexCount;
 	}
 	else if (key == 27) //ESC
 	{
