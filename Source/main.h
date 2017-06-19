@@ -5,6 +5,7 @@
 #include "CVertexBufferObject.h"
 #include "CSkybox.h"
 #include <math.h>
+#include <stdlib.h>
 
 ///define
 #define MENU_TIMER_START 1
@@ -147,10 +148,21 @@ unsigned int timer_speed = 16;
 Model streets[16]; 
 unsigned int streetCount = 0;
 Model grass[225];
-Material grassTexture;
 unsigned int grassCount = 0;
-Model coord[457];
+Model signBox[16];
+unsigned int signCount = 0;
+Model coord[441];
 unsigned int coordCount = 0;
+vec3 signPosition[] = {
+	vec3(20, 0, 470), vec3(170, 0, 310), vec3(315, 0, 140), vec3(470, 0, -20),
+	vec3(620, 0, -175), vec3(460, 0, -340), vec3(290, 0, -480), vec3(125, 0, -635),
+	vec3(-30, 0, -480), vec3(-180, 0, -305), vec3(-330, 0, -140), vec3(-470, 0, 25),
+	vec3(-625, 0, 170), vec3(-480, 0, 335), vec3(-295, 0, 475), vec3(-125, 0, 635)
+};
+string signImage[] = {
+	"1", "2", "3", "4", "5", "6", "7", "8", 
+	"9", "10", "11", "12", "13", "14", "15", "16"
+};
 
 /// shader
 GLuint program;

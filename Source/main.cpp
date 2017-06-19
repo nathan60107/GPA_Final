@@ -93,53 +93,53 @@ void drawCube(float width, float height, float length, vec3 center, Model* model
 	height /= 2;
 	GLfloat vertex[] =
 	{
-		x - width, y + height, z - length,
-		x - width, y - height, z - length,
-		x + width, y - height, z - length,
+		x - width, y + height, z - length, 1, 1, 0, 0, -1,
+		x - width, y - height, z - length, 1, 0, 0, 0, -1,
+		x + width, y - height, z - length, 0, 0, 0, 0, -1,
 
-		x + width, y - height, z - length,
-		x + width, y + height, z - length,
-		x - width, y + height, z - length,
+		x + width, y - height, z - length, 0, 0, 0, 0, -1,
+		x + width, y + height, z - length, 0, 1, 0, 0, -1,
+		x - width, y + height, z - length, 1, 1, 0, 0, -1,
 
-		x + width, y - height, z - length,
-		x + width, y - height, z + length,
-		x + width, y + height, z - length,
+		x + width, y - height, z - length, 1, 0, 1, 0, 0,
+		x + width, y - height, z + length, 0, 0, 1, 0, 0,
+		x + width, y + height, z - length, 1, 1, 1, 0, 0,
 
-		x + width, y - height, z + length,
-		x + width, y + height, z + length,
-		x + width, y + height, z - length,
+		x + width, y - height, z + length, 0, 0, 1, 0, 0,
+		x + width, y + height, z + length, 0, 1, 1, 0, 0,
+		x + width, y + height, z - length, 1, 1, 1, 0, 0,
 
-		x + width, y - height, z + length,
-		x - width, y - height, z + length,
-		x + width, y + height, z + length,
+		x + width, y - height, z + length, 1, 0, 0, 0, 1,
+		x - width, y - height, z + length, 0, 0, 0, 0, 1,
+		x + width, y + height, z + length, 1, 1, 0, 0, 1,
 
-		x - width, y - height, z + length,
-		x - width, y + height, z + length,
-		x + width, y + height, z + length,
+		x - width, y - height, z + length, 0, 0, 0, 0, 1,
+		x - width, y + height, z + length, 0, 1, 0, 0, 1,
+		x + width, y + height, z + length, 1, 1, 0, 0, 1,
 
-		x - width, y - height, z + length,
-		x - width, y - height, z - length,
-		x - width, y + height, z + length,
+		x - width, y - height, z + length, 1, 0, -1, 0, 0,
+		x - width, y - height, z - length, 0, 0, -1, 0, 0,
+		x - width, y + height, z + length, 1, 1, -1, 0, 0,
 
-		x - width, y - height, z - length,
-		x - width, y + height, z - length,
-		x - width, y + height, z + length,
+		x - width, y - height, z - length, 0, 0, -1, 0, 0,
+		x - width, y + height, z - length, 0, 1, -1, 0, 0,
+		x - width, y + height, z + length, 1, 1, -1, 0, 0,
 
-		x - width, y - height, z + length,
-		x + width, y - height, z + length,
-		x + width, y - height, z - length,
+		x - width, y - height, z + length, 0, 1, 0, -1, 0,
+		x + width, y - height, z + length, 1, 1, 0, -1, 0,
+		x + width, y - height, z - length, 1, 0, 0, -1, 0,
 
-		x + width, y - height, z - length,
-		x - width, y - height, z - length,
-		x - width, y - height, z + length,
+		x + width, y - height, z - length, 1, 0, 0, -1, 0,
+		x - width, y - height, z - length, 0, 0, 0, -1, 0,
+		x - width, y - height, z + length, 0, 1, 0, -1, 0,
 
-		x - width, y + height, z - length,
-		x + width, y + height, z - length,
-		x + width, y + height, z + length,
+		x - width, y + height, z - length, 0, 1, 0, 1, 0,
+		x + width, y + height, z - length, 1, 1, 0, 1, 0,
+		x + width, y + height, z + length, 1, 0, 0, 1, 0,
 
-		x + width, y + height, z + length,
-		x - width, y + height, z + length,
-		x - width, y + height, z - length
+		x + width, y + height, z + length, 1, 0, 0, 1, 0,
+		x - width, y + height, z + length, 0, 0, 0, 1, 0,
+		x - width, y + height, z - length, 0, 1, 0, 1, 0
 	};
 
 	// put data to buffer
@@ -148,9 +148,14 @@ void drawCube(float width, float height, float length, vec3 center, Model* model
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
 
 	// set vao format
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const void*)(sizeof(GLfloat) * 3));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (const void*)(sizeof(GLfloat) * 5));
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 
+	models[*count].shapes[0].drawCount = 36;
 	*count = *count + 1;
 }
 
@@ -189,6 +194,7 @@ void drawSquare(float width, float height, vec2 center, Model* models, unsigned 
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 
+	models[*count].shapes[0].drawCount = 6;
 	*count = *count + 1;
 }
 
@@ -530,15 +536,34 @@ void My_Init()
 			grass[grassCount - 1].model_matrix = mat4();
 		}
 	}
+	grass[0].materials.resize(sizeof(Material));
 	TextureData textureData = loadPNG("../TexturedScene/scene/grass.jpg");
-	glGenTextures(1, &grassTexture.diffuse_tex);
-	glBindTexture(GL_TEXTURE_2D, grassTexture.diffuse_tex);
+	glGenTextures(1, &grass[0].materials[0].diffuse_tex);
+	glBindTexture(GL_TEXTURE_2D, grass[0].materials[0].diffuse_tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+	// sign
+	for (int i = 0; i < 16; i++) {
+		drawCube(5, 5, 5, signPosition[i], signBox, &signCount);
+		signBox[i].model_matrix = mat4();
+		string path = "../TexturedScene/scene/number box/";
+		path.append(signImage[i]);
+		path.append(".png");
+		TextureData textureData = loadPNG(path.c_str());
+		signBox[i].materials.resize(sizeof(Material));
+		glGenTextures(1, &signBox[i].materials[0].diffuse_tex);
+		glBindTexture(GL_TEXTURE_2D, signBox[i].materials[0].diffuse_tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textureData.width, textureData.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+	
 	// coordinate
 	for (int i = -10; i <= 10; i++) {
 		for (int j = -10; j <= 10; j++) {
@@ -546,38 +571,6 @@ void My_Init()
 			coord[coordCount - 1].model_matrix = mat4();
 		}
 	}
-	drawCube(5, 5, 5, vec3(20, 0, 470), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(170, 0, 310), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(315, 0, 140), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(470, 0, -20), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(620, 0, -175), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(460, 0, -340), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(290, 0, -480), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(125, 0, -635), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-30, 0, -480), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-180, 0, -305), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-330, 0, -140), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-470, 0, 25), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-625, 0, 170), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-480, 0, 335), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-295, 0, 475), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
-	drawCube(5, 5, 5, vec3(-125, 0, 635), coord, &coordCount);
-	coord[coordCount - 1].model_matrix = mat4();
 
 	//loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
 	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
@@ -801,13 +794,23 @@ void My_Display()
 	}
 
 	// draw grass
-	glBindTexture(GL_TEXTURE_2D, grassTexture.diffuse_tex);
+	glBindTexture(GL_TEXTURE_2D, grass[0].materials[0].diffuse_tex);
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glBindVertexArray(grass[i].shapes[0].vao);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, grass[i].shapes[0].drawCount);
+	}
+
+	// draw sign box
+	for (int i = 0; i < signCount; i++) {
+		mat4 mv_matrix = view_matrix * coord[i].model_matrix;
+		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glBindVertexArray(signBox[i].shapes[0].vao);
+		glBindTexture(GL_TEXTURE_2D, signBox[i].materials[0].diffuse_tex);
+		glDrawArrays(GL_TRIANGLES, 0, signBox[i].shapes[0].drawCount);
 	}
 
 	// draw coordinates
@@ -816,7 +819,7 @@ void My_Display()
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glBindVertexArray(coord[i].shapes[0].vao);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, coord[i].shapes[0].drawCount);
 	}
 
 	// ----- End Begin Blinn-Phong Shading Pass -----
