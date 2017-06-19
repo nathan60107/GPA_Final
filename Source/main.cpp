@@ -673,13 +673,13 @@ void My_Display()
 	for (int m = 0; m < streetCount; ++m) {
 
 		// transmit uniform variable
-<<<<<<< HEAD
+/*<<<<<<< HEAD
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *models[m].model_matrix));
-=======
+=======*/
 		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
-		glUniformMatrix4fv(uniforms_shadow.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
->>>>>>> origin/master
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
+//>>>>>>> origin/master
 		glActiveTexture(GL_TEXTURE0);
 
 		// draw
@@ -737,7 +737,7 @@ void My_Display()
 	for (int m = 0; m < streetCount; ++m) {
 		
 		// transmit uniform variable
-<<<<<<< HEAD
+/*<<<<<<< HEAD
 		mat4 mv_matrix = view_matrix * models[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * models[m].model_matrix;
 		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
@@ -745,15 +745,15 @@ void My_Display()
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(models[m].model_matrix));
-=======
+=======*/
 		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * streets[m].model_matrix;
-		glUniformMatrix4fv(uniforms_shadow.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
-		glUniformMatrix4fv(um4v, 1, GL_FALSE, &view_matrix[0][0]);
-		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
-		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glUniformMatrix4fv(um4m, 1, GL_FALSE, value_ptr(streets[m].model_matrix));
->>>>>>> origin/master
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(streets[m].model_matrix));
+//>>>>>>> origin/master
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(uniforms.blinnPhong.us2dtex, 0);
@@ -765,17 +765,16 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
 			int materialID = streets[m].shapes[i].materialID;
 
-<<<<<<< HEAD
+/*<<<<<<< HEAD
 			glUniform3f(uniforms.blinnPhong.ambient, models[m].materials[materialID].ambient[0], models[m].materials[materialID].ambient[1], models[m].materials[materialID].ambient[2]);
 			glUniform3f(uniforms.blinnPhong.diffuse, models[m].materials[materialID].diffuse[0], models[m].materials[materialID].diffuse[1], models[m].materials[materialID].diffuse[2]);
 			glUniform1f(uniforms.blinnPhong.shininess, models[m].materials[materialID].shininess);
 			glUniform3f(uniforms.blinnPhong.specular, models[m].materials[materialID].specular[0], models[m].materials[materialID].specular[1], models[m].materials[materialID].specular[2]);
-=======
-			glUniform3f(uniforms_shadow.light.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms_shadow.light.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms_shadow.light.shininess, streets[m].materials[materialID].shininess);
-			glUniform3f(uniforms_shadow.light.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
->>>>>>> origin/master
+=======*/
+			glUniform3f(uniforms.blinnPhong.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms.blinnPhong.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms.blinnPhong.shininess, streets[m].materials[materialID].shininess);
+			glUniform3f(uniforms.blinnPhong.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
 
 			glBindTexture(GL_TEXTURE_2D, streets[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
@@ -786,8 +785,8 @@ void My_Display()
 	glBindTexture(GL_TEXTURE_2D, grassTexture.diffuse_tex);
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
-		glUniformMatrix4fv(um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
-		glUniformMatrix4fv(um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
