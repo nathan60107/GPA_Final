@@ -530,51 +530,14 @@ void My_Init()
 
 	// ----- Begin Initialize Scene Model -----
 	// street
-	mat4 matrix;
 	loadSence("../TexturedScene/scene/old fashion town/old town block.obj", "../TexturedScene/scene/old fashion town/", streets, &streetCount, vec3(0, 0, 0), vec3(0.5));
-	streets[streetCount - 1].model_matrix = translate(matrix, vec3(75, 0, 355));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(35, 0, -590));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-583, 0, -247));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(394, 0, 342));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-284, 0, -577));
-	streets[streetCount] = streets[streetCount - 1];
-	streets[streetCount++].model_matrix = translate(mat4(), vec3(-570, 0, 72));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(381, 0, 23));
-	streets[streetCount] = streets[streetCount - 1];
-	streets[streetCount++].model_matrix = translate(mat4(), vec3(-271, 0, -258));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(82, 0, 353));
-	streets[streetCount] = streets[streetCount - 1];
-	streets[streetCount++].model_matrix = translate(mat4(), vec3(28, 0, -588));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-581, 0, -240));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(392, 0, 335));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(270.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-282, 0, -570));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-563, 0, 70));
-	streets[streetCount] = streets[streetCount - 1];
-	streets[streetCount++].model_matrix = translate(mat4(), vec3(374, 0, 25));
-	streets[streetCount] = streets[streetCount - 1];
-	matrix = rotate(mat4(), float(deg2rad(180.0f), vec3(0, 1, 0));
-	streets[streetCount++].model_matrix = translate(matrix, vec3(-264, 0, -260));
-	
+	streets[0].model_matrix = translate(mat4(), streetPosition[0]);
+	for (int i = 1; i < 16; i++) {
+		streets[streetCount] = streets[streetCount - 1];
+		mat4 matrix = rotate(mat4(), float(deg2rad(streetDegree[i]), vec3(0, 1, 0));
+		streets[streetCount++].model_matrix = translate(matrix, streetPosition[i]);
+	}
+
 	// grass
 	for (int i = -7; i <= 7; i++) {
 		for (int j = -7; j <= 7; j++) {
@@ -595,7 +558,7 @@ void My_Init()
 	// sign
 	for (int i = 0; i < 16; i++) {
 		drawCube(5, 5, 5, signPosition[i], signBox, &signCount);
-		signBox[i].model_matrix = mat4();
+		signBox[i].model_matrix = rotate(mat4(), float(deg2rad(signDegree[i]), vec3(0, 1, 0));
 		string path = "../TexturedScene/scene/number box/";
 		path.append(signImage[i]);
 		path.append(".png");
@@ -611,44 +574,9 @@ void My_Init()
 	}
 
 	// draw animals
-	//loadSence("../TexturedScene/Farmhouse Maya/farmhouse_obj.obj", "../TexturedScene/Farmhouse Maya/", 0, vec3(0, 0, 0), 1);
-	//loadSence("../TexturedScene/Old_Warehouse/OBJ/Warehouse.obj", "../TexturedScene/Old_Warehouse/", 1);
-	//loadSence("../TexturedScene/dabrovic-sponza/sponza.obj", "../TexturedScene/dabrovic-sponza/", 2);
-	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
-	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
-	
 	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", animals, &animalCount, vec3(0, 0, 0), vec3(10));
-	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
-	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
-	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/pig/pig.obj", "../TexturedScene/pig/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/goat/goat.obj", "../TexturedScene/goat/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/horse/LD_HorseRtime02.obj", "../TexturedScene/horse/", shapeIndexCount, vec3(2, 2, 2), vec3(1));
-	loadSence("../TexturedScene/Cat/Cat.obj", "../TexturedScene/Cat/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Giraffe/Giraffe.OBJ", "../TexturedScene/Giraffe/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Gorilla/Gorilla.obj", "../TexturedScene/Gorilla/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Great_White_A/GreatWhite.obj", "../TexturedScene/Great_White_A/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
-	loadSence("../TexturedScene/Sand_Tiger/SandTiger.obj", "../TexturedScene/Sand_Tiger/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
-	loadSence("../TexturedScene/Killer_Whale/Killer_Whale.obj", "../TexturedScene/Killer_Whale/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Wolf/Wolf.obj", "../TexturedScene/Wolf/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Bear_Brown/Bear_Brown.obj", "../TexturedScene/Bear_Brown/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Chickdee/CHICKDEE.3DS", "../TexturedScene/Chickdee/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
-	loadSence("../TexturedScene/1pui1qkawg-Alsatian (Dog)/3ds file.3DS", "../TexturedScene/1pui1qkawg-Alsatian (Dog)/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/aqfj72cgmv-Sheep/3ds file.3DS", "../TexturedScene/aqfj72cgmv-Sheep/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/black bear/BEAR_BLK.3DS", "../TexturedScene/black bear/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Crow/CROW.3DS", "../TexturedScene/Crow/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
-	loadSence("../TexturedScene/Duck/DUCK.3DS", "../TexturedScene/Duck/", shapeIndexCount, vec3(0, 0, 0), vec3(5));
-	loadSence("../TexturedScene/eagle 3/EAGLE_3.3DS", "../TexturedScene/eagle 3/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Flacon/FALCON_2.3DS", "../TexturedScene/Flacon/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/frog/FROG.3DS", "../TexturedScene/frog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/Goldfish/GOLDFISH.3DS", "../TexturedScene/Goldfish/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
-	loadSence("../TexturedScene/LM bas/LM_BASS.3DS", "../TexturedScene/LM bas/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
-	loadSence("../TexturedScene/MONARCH/MONARCH.3DS", "../TexturedScene/MONARCH/", shapeIndexCount, vec3(0, 0, 0), vec3(3));
-	loadSence("../TexturedScene/orca/ORCA.3DS", "../TexturedScene/orca/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
-	loadSence("../TexturedScene/turtoise/TORTOISE.3DS", "../TexturedScene/turtoise/", shapeIndexCount, vec3(0, 0, 0), vec3(1));*/
-	
-	//¥H¤U«Ý½T»{
-	//loadSence("../TexturedScene/Wolf Rigged and Game Ready/Wolf_3ds.3ds", "../TexturedScene/Wolf Rigged and Game Ready/", shapeIndexCount, vec3(0, 0, 0), 1);
+	loadSence("../TexturedScene/Wolf/Wolf.obj", "../TexturedScene/Wolf/", animals, &animalCount, vec3(0, 0, 0), vec3(6));
+	loadSence("../TexturedScene/Bear_Brown/Bear_Brown.obj", "../TexturedScene/Bear_Brown/", animals, &animalCount, vec3(0, 0, 0), vec3(5));
 	// ----- End Initialize Scene Model -----
 
 	// calculate camara bezier curve
@@ -683,6 +611,9 @@ void My_Init()
 			}
 			curve.push_back(pos);
 		}
+	}
+	for (int i = 0; i < animalCount; i++) {
+		animals[i].index = rand() % curve.size();
 	}
 	
 	// setting shadow frame buffer
@@ -788,32 +719,58 @@ void My_Display()
 	double currentTime = glutGet(GLUT_ELAPSED_TIME);
 	deltaTime = float(currentTime - lastTime);
 	pastTime += deltaTime;
+	for (int i = 0; i < animalCount; i++) {
+		animalTime[i] += deltaTime;
+	}
 
 	// reset mouse position and calculate angle
-	if (mousePressOrNot) {
+	if (mousePressOrNot && !animateStart) {
 		glutWarpPointer(start.x, start.y);
 		actualCamera.horizontalAngle += mouseSpeed * float(start.x - xpos);
 		actualCamera.verticalAngle += mouseSpeed * float(start.y - ypos);
 	}
 
-	// change view and record time
-
+	// animate
 	if (pastTime > cameraSpeed && animateStart) {
-
-		actualCamera.position = curve[index];
-		vec3 vec = curve[(index + 1) % curve.size()] - curve[index];
+		actualCamera.position = curve[cameraAnimateIndex];
+		vec3 vec = curve[(cameraAnimateIndex + 1) % curve.size()] - curve[cameraAnimateIndex];
 		actualCamera.horizontalAngle = atan(vec.x / vec.z);
 		if (vec.z < 0) actualCamera.horizontalAngle += 3.14;
 		actualCamera.verticalAngle = 0.0f;
-		index = (index + 1) % curve.size();
+		cameraAnimateIndex = (cameraAnimateIndex + 1) % curve.size();
 		pastTime = 0;
 	}
+
+	for (int i = 0; i < animalCount; i++) {
+		if (animalTime[i] > animalSpeed[i]) {
+			printf("%d\n", i);
+			// real time dir
+			vec3 vec = curve[(animals[i].index + 1) % curve.size()] - curve[animals[i].index];
+			float horizontalAngle = atan(vec.x / vec.z);
+			if (vec.z < 0) horizontalAngle += 3.14;
+
+			// polar coord
+			vec3 pos = curve[animals[i].index];
+			float theta = atan(pos.x / pos.z);
+			if (pos.z < 0) theta += 3.14;
+			theta = (theta - horizontalAngle) * 180 / 3.14 - animalInatialDegree[i];
+			float r = distance(pos, vec3(0, pos.y, 0));
+
+			// model matrix
+			mat4 matrix = rotate(mat4(), float(deg2rad(animalInatialDegree[i]) + horizontalAngle, vec3(0, 1, 0));
+			animals[i].model_matrix = translate(matrix, vec3(r*sin(deg2rad(theta), animalHeight[i], r*cos(deg2rad(theta)));
+			animals[i].index = (animals[i].index + 1) % curve.size();
+			animalTime[i] = 0;
+		}
+	}
+
+	// change view and record time
 	changeView();
 	lastTime = currentTime;
 
 	// draw streets
 	for (int m = 0; m < streetCount; ++m) {
-		
+
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
 		mat4 shadow_matrix = shadow_sbpv_matrix * streets[m].model_matrix;
@@ -825,13 +782,18 @@ void My_Display()
 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(uniforms.blinnPhong.us2dtex, 0);
-		
+
 		// draw
 		for (int i = 0; i < streets[m].shapes.size(); ++i)
 		{
 			glBindVertexArray(streets[m].shapes[i].vao);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
 			int materialID = streets[m].shapes[i].materialID;
+
+			glUniform3f(uniforms.blinnPhong.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms.blinnPhong.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms.blinnPhong.shininess, streets[m].materials[materialID].shininess);
+			glUniform3f(uniforms.blinnPhong.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
 
 			glBindTexture(GL_TEXTURE_2D, streets[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
@@ -842,12 +804,8 @@ void My_Display()
 	glBindTexture(GL_TEXTURE_2D, grass[0].materials[0].diffuse_tex);
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
-		mat4 shadow_matrix = shadow_sbpv_matrix * grass[i].model_matrix;
-		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
-		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(grass[i].model_matrix));
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, grass[i].shapes[0].drawCount);
 	}
@@ -874,22 +832,24 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, animals[m].shapes[i].ibo);
 			int materialID = animals[m].shapes[i].materialID;
 
+			glUniform3f(uniforms.blinnPhong.ambient, animals[m].materials[materialID].ambient[0], animals[m].materials[materialID].ambient[1], animals[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms.blinnPhong.diffuse, animals[m].materials[materialID].diffuse[0], animals[m].materials[materialID].diffuse[1], animals[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms.blinnPhong.shininess, animals[m].materials[materialID].shininess);
+			glUniform3f(uniforms.blinnPhong.specular, animals[m].materials[materialID].specular[0], animals[m].materials[materialID].specular[1], animals[m].materials[materialID].specular[2]);
+
 			glBindTexture(GL_TEXTURE_2D, animals[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, animals[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
 	}
 
-	// draw coordinates
-	for (int i = 0; i < animalCount; i++) {
-		mat4 mv_matrix = view_matrix * animals[i].model_matrix;
-		mat4 shadow_matrix = shadow_sbpv_matrix * animals[i].model_matrix;
-		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
-		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
+	// draw sign
+	for (int i = 0; i < signCount; i++) {
+		mat4 mv_matrix = view_matrix * signBox[i].model_matrix;
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(animals[i].model_matrix));
-		glBindVertexArray(animals[i].shapes[0].vao);
-		glDrawArrays(GL_TRIANGLES, 0, animals[i].shapes[0].drawCount);
+		glBindVertexArray(signBox[i].shapes[0].vao);
+		glBindTexture(GL_TEXTURE_2D, signBox[i].materials[0].diffuse_tex);
+		glDrawArrays(GL_TRIANGLES, 0, signBox[i].shapes[0].drawCount);
 	}
 
 	// ----- End Begin Blinn-Phong Shading Pass -----
@@ -991,28 +951,6 @@ void My_Keyboard(unsigned char key, int x, int y)
 	}
 }
 
-void My_SpecialKeys(int key, int x, int y)
-{
-	switch (key)
-	{
-	case GLUT_KEY_LEFT:
-		
-		break;
-	case GLUT_KEY_RIGHT:
-		
-		break;
-	case GLUT_KEY_UP:
-
-		break;
-	case GLUT_KEY_DOWN:
-
-		break;
-	default:
-		//if (printOrNot) printf("Other special key is pressed at (%d, %d)\n", x, y);
-		break;
-	}
-}
-
 void My_Menu(int id)
 {
 	switch (id)
@@ -1023,7 +961,6 @@ void My_Menu(int id)
 			animateStart = false;
 		}
 		else {
-			cameras[nowCamera] = actualCamera;
 			pastTime = 0;
 			animateStart = true;
 		}
@@ -1107,7 +1044,6 @@ int main(int argc, char *argv[])
 	glutPassiveMotionFunc(My_MotionMouse);
 	glutMouseWheelFunc(My_MouseWheel);
 	glutKeyboardFunc(My_Keyboard);
-	glutSpecialFunc(My_SpecialKeys);
 	glutTimerFunc(timer_speed, My_Timer, 0);
 
 	// Enter main event loop.

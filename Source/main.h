@@ -13,7 +13,7 @@
 #define BLINNPHONG 6
 #define ANIMATION 7
 #define NOEFFECT 8
-#define SHADOW_MAP_SIZE 14745
+#define SHADOW_MAP_SIZE 4096
 
 ///using namespace
 using namespace glm;
@@ -46,21 +46,8 @@ typedef struct Model {
 	std::vector<Shape> shapes;
 	mat4 model_matrix;
 	vec3 center;
+	int index;
 } Model;
-
-/*struct
-{
-	struct
-	{
-		GLint mv_matrix;
-		GLint proj_matrix;
-	} render;
-	struct
-	{
-		GLint view_matrix;
-		GLint eye_position;
-	} skybox;
-} uniforms;*/
 
 typedef struct _TextureData
 {
@@ -125,15 +112,6 @@ struct
 	int height;
 } viewportSize;
 
-/*struct
-{
-	GLint vColor;
-	GLint fAmbientIntensity;
-	GLint vDirection;
-	GLint projectionMatrix;
-	GLint gSampler;
-} skyboxUniform;*/
-
 typedef struct
 {
 	vec3 position;
@@ -148,56 +126,77 @@ bool timer_enabled = true;
 unsigned int timer_speed = 16;
 
 /// models
-Model streets[16]; 
+Model streets[16];
 unsigned int streetCount = 0;
 Model grass[225];
 unsigned int grassCount = 0;
 Model signBox[16];
 unsigned int signCount = 0;
-Model animals[30];
+Model animals[3];
 unsigned int animalCount = 0;
+float streetDegree[] = {
+	0.0f, 180.0f, 90.0f, 270.0f, 90.0f, 0.0f, 180.0f, 0.0f,
+	180.0f, 0.0f, 270.0f, 90.0f, 270.0f, 180.0f, 0.0f, 180.0f
+};
+vec3 streetPosition[] = {
+	vec3(75, 0, 355), vec3(35, 0, -590), vec3(-583, 0, -247), vec3(394, 0, 342),
+	vec3(-284, 0, -577), vec3(-570, 0, 72), vec3(381, 0, 23), vec3(-271, 0, -258),
+	vec3(82, 0, 353), vec3(28, 0, -588), vec3(-581, 0, -240), vec3(392, 0, 335),
+	vec3(-282, 0, -570), vec3(-563, 0, 70), vec3(374, 0, 25), vec3(-264, 0, -260)
+};
+float signDegree[] = {
+	0.0f, 270.0f, 0.0f, 270.0f, 0.0f, 90.0f, 0.0f, 90.0f,
+	180.0f, 90.0f, 180.0f, 90.0f, 180.0f, 270.0f, 180.0f, 270.0f
+};
 vec3 signPosition[] = {
-	vec3(20, 0, 470), vec3(170, 0, 310), vec3(315, 0, 140), vec3(470, 0, -20),
-	vec3(620, 0, -175), vec3(460, 0, -340), vec3(290, 0, -480), vec3(125, 0, -635),
-	vec3(-30, 0, -480), vec3(-180, 0, -305), vec3(-330, 0, -140), vec3(-470, 0, 25),
-	vec3(-625, 0, 170), vec3(-480, 0, 335), vec3(-295, 0, 475), vec3(-125, 0, 635)
+	vec3(20, 0, 470), vec3(310, 0, -170), vec3(315, 0, 140), vec3(-20, 0, -470),
+	vec3(620, 0, -175), vec3(340, 0, 460), vec3(290, 0, -480), vec3(635, 0, 125),
+	vec3(30, 0, 480), vec3(305, 0, -180), vec3(330, 0, 140), vec3(-25, 0, -470),
+	vec3(625, 0, -170), vec3(335, 0, 480), vec3(295, 0, -475), vec3(635, 0, 125)
 };
 string signImage[] = {
-	"1", "2", "3", "4", "5", "6", "7", "8", 
+	"1", "2", "3", "4", "5", "6", "7", "8",
 	"9", "10", "11", "12", "13", "14", "15", "16"
+};
+float animalInatialDegree[] = {
+	0.0f, 0.0f, 0.0f
+};
+float animalHeight[] = {
+	-10.0f, -12.0f, -13.0f
+};
+float animalSpeed[] = {
+	100.0f, 20.0f, 50.0f
+};
+float animalTime[] = {
+	0, 0, 0
 };
 
 /// shader
 GLuint program;
 GLuint depthProg;
-//GLuint skyBoxProgram;
 mat4 view_matrix;
 mat4 proj_matrix;
-
-/// sky box
-//CSkybox skybox;
-float side = 1000.0f;
 
 /// camera setting
 Camera actualCamera;
 Camera cameras[2];
 unsigned int cameraCount = 2;
 unsigned int nowCamera = 0;
+int cameraAnimateIndex = 0;
 float initialFoV = 45.0f;
 float viewportAspect;
+float cameraSpeed = 80.0f;
 
 /// bezier curve
 bool animateStart = false;
 int detailOfLevel = 100;
-int index = 0;
 float pastTime = 0;
-float cameraSpeed = 80.0f;
 vector<vec3> curve;
 const float basis_matrix[4][4] = {
-	{-1, 3, -3, 1},
-	{3, -6, 3, 0},
-	{-3, 3, 0, 0},
-	{1, 0, 0, 0}
+	{ -1, 3, -3, 1 },
+	{ 3, -6, 3, 0 },
+	{ -3, 3, 0, 0 },
+	{ 1, 0, 0, 0 }
 };
 vec3 controlPoints[] = {
 	vec3(20, -10 , 470), vec3(10, -10, 380), vec3(80, -10, 300),
