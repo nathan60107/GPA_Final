@@ -198,16 +198,6 @@ void drawSquare(float width, float height, vec2 center, Model* models, unsigned 
 	*count = *count + 1;
 }
 
-void cameraPositionChecker()
-{
-	if (actualCamera.position.x > side) actualCamera.position.x = side;
-	if (actualCamera.position.x < -side) actualCamera.position.x = -side;
-	if (actualCamera.position.y > side) actualCamera.position.y = side;
-	if (actualCamera.position.y < -side) actualCamera.position.y = -side;
-	if (actualCamera.position.z > side) actualCamera.position.z = side;
-	if (actualCamera.position.z < -side) actualCamera.position.z = -side;
-}
-
 void changeView()
 {
 	direction = vec3(cos(actualCamera.verticalAngle) * sin(actualCamera.horizontalAngle), sin(actualCamera.verticalAngle), cos(actualCamera.verticalAngle) * cos(actualCamera.horizontalAngle));
@@ -215,7 +205,6 @@ void changeView()
 	up = cross(rightDirection, direction);
 	view_matrix = lookAt(actualCamera.position, actualCamera.position + direction, up);
 	proj_matrix = perspective(initialFoV - 5 * actualCamera.currentFov, viewportAspect, 0.1f, 1500.0f);
-
 }
 
 GLuint createProgram(std::string vertex, std::string fragment)
@@ -730,7 +719,7 @@ void My_Init()
 	cameras[1].position = vec3(20, -10, 470);
 	cameras[1].horizontalAngle = 3.14f;
 	cameras[1].verticalAngle = 0.0f;
-	actualCamera = cameras[1];
+	actualCamera = cameras[0];
 
 	if (printOrNot) printf("finish My_Init\n");
 }
@@ -820,6 +809,10 @@ void My_Display()
 	if (pastTime > cameraSpeed && animateStart) {
 
 		actualCamera.position = curve[index];
+		vec3 vec = curve[(index + 1) % curve.size()] - curve[index];
+		actualCamera.horizontalAngle = atan(vec.x / vec.z);
+		if (vec.z < 0) actualCamera.horizontalAngle += 3.14;
+		actualCamera.verticalAngle = 0.0f;
 		index = (index + 1) % curve.size();
 		pastTime = 0;
 	}
@@ -952,32 +945,26 @@ void My_Keyboard(unsigned char key, int x, int y)
 	if (key == 'd' || key == 'D')
 	{
 		actualCamera.position += rightDirection * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 'a' || key == 'A')
 	{
 		actualCamera.position -= rightDirection * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 'w' || key == 'W')
 	{
 		actualCamera.position += direction * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 's' || key == 'S')
 	{
 		actualCamera.position -= direction * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 'z' || key == 'Z')
 	{
 		actualCamera.position += up * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 'x' || key == 'X')
 	{
 		actualCamera.position -= up * deltaTime * speed;
-		cameraPositionChecker();
 	}
 	else if (key == 'c' || key == 'C')
 	{
