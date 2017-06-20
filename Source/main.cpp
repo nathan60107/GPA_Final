@@ -719,10 +719,10 @@ void My_Display()
 	);
 	
 	// ----- Begin Shadow Map Pass -----
-	vec3 lightPosition = vec3(750.0f, 750.0f, 20.0f); 
-	mat4 light_proj_matrix = ortho(-750, 750, -750, 750, -750, 750);//frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f); //ortho()
+	vec3 lightPosition = vec3(75.0f, 75.0f, 20.0f); 
+	mat4 light_proj_matrix = ortho<float>(-1000, 1000, -750, 750, -1000, 750);//frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f); //ortho()
 	mat4 light_view_matrix = lookAt(lightPosition, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix;
+	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix * mat4(1.0);
 
 	mat4 shadow_sbpv_matrix = scale_bias_matrix * light_vp_matrix;
 
@@ -737,9 +737,7 @@ void My_Display()
 	for (int m = 0; m < streetCount; ++m) {
 
 		// transmit uniform variable
-		mat4 mv_matrix = view_matrix * streets[m].model_matrix;
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
-		glActiveTexture(GL_TEXTURE0);
 
 		// draw
 		for (int i = 0; i < streets[m].shapes.size(); ++i)
@@ -753,9 +751,7 @@ void My_Display()
 	for (int m = 0; m < animalCount; ++m) {
 
 		// transmit uniform variable
-		mat4 mv_matrix = view_matrix * animals[m].model_matrix;
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
-		glActiveTexture(GL_TEXTURE0);
 
 		// draw
 		for (int i = 0; i < animals[m].shapes.size(); ++i)
@@ -768,9 +764,7 @@ void My_Display()
 
 	// draw grass
 	for (int i = 0; i < grassCount; i++) {
-		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *grass[i].model_matrix));
-		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -783,7 +777,6 @@ void My_Display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, viewportSize.width, viewportSize.height);
 	drawSkybox();
-	glClear(GL_DEPTH_BUFFER_BIT);
 	glUseProgram(program);
 
 	glActiveTexture(GL_TEXTURE1);
@@ -842,11 +835,6 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
 			int materialID = streets[m].shapes[i].materialID;
 
-			glUniform3f(uniforms.blinnPhong.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms.blinnPhong.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms.blinnPhong.shininess, streets[m].materials[materialID].shininess);
-			glUniform3f(uniforms.blinnPhong.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
-
 			glBindTexture(GL_TEXTURE_2D, streets[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
@@ -856,14 +844,18 @@ void My_Display()
 	glBindTexture(GL_TEXTURE_2D, grass[0].materials[0].diffuse_tex);
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * grass[i].model_matrix;
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(grass[i].model_matrix));
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, grass[i].shapes[0].drawCount);
 	}
 
 	// draw animals
-	for (int m = 0; m < animalCount; ++m) {
+	/*for (int m = 0; m < animalCount; ++m) {
 
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * animals[m].model_matrix;
@@ -884,11 +876,6 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, animals[m].shapes[i].ibo);
 			int materialID = animals[m].shapes[i].materialID;
 
-			glUniform3f(uniforms.blinnPhong.ambient, animals[m].materials[materialID].ambient[0], animals[m].materials[materialID].ambient[1], animals[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms.blinnPhong.diffuse, animals[m].materials[materialID].diffuse[0], animals[m].materials[materialID].diffuse[1], animals[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms.blinnPhong.shininess, animals[m].materials[materialID].shininess);
-			glUniform3f(uniforms.blinnPhong.specular, animals[m].materials[materialID].specular[0], animals[m].materials[materialID].specular[1], animals[m].materials[materialID].specular[2]);
-
 			glBindTexture(GL_TEXTURE_2D, animals[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, animals[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
@@ -897,11 +884,15 @@ void My_Display()
 	// draw coordinates
 	for (int i = 0; i < animalCount; i++) {
 		mat4 mv_matrix = view_matrix * animals[i].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * animals[i].model_matrix;
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(animals[i].model_matrix));
 		glBindVertexArray(animals[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, animals[i].shapes[0].drawCount);
-	}
+	}*/
 
 	// ----- End Begin Blinn-Phong Shading Pass -----
 	glutSwapBuffers();
@@ -1046,7 +1037,7 @@ void My_Menu(int id)
 		glUniform1i(uniforms.parameter.shadowSwitch, ++shadowSwitch);// (++shadowSwitch) % 2);
 		break;
 	case BLINNPHONG:
-		glUniform1i(uniforms.parameter.blinnPhongSwitch, (++blinnPhongSwitch)%2);
+		glUniform1i(uniforms.parameter.blinnPhongSwitch, (++blinnPhongSwitch) % 2);
 		break;
 	case MENU_TIMER_START:
 		if (!timer_enabled)
