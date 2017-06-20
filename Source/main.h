@@ -153,8 +153,8 @@ Model grass[225];
 unsigned int grassCount = 0;
 Model signBox[16];
 unsigned int signCount = 0;
-Model coord[441];
-unsigned int coordCount = 0;
+Model animals[30];
+unsigned int animalCount = 0;
 vec3 signPosition[] = {
 	vec3(20, 0, 470), vec3(170, 0, 310), vec3(315, 0, 140), vec3(470, 0, -20),
 	vec3(620, 0, -175), vec3(460, 0, -340), vec3(290, 0, -480), vec3(125, 0, -635),

@@ -609,30 +609,15 @@ void My_Init()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
-	
-	// coordinate
-	for (int i = -10; i <= 10; i++) {
-		for (int j = -10; j <= 10; j++) {
-			drawCube(1, 1, 1, vec3(i * 100, 0, j * 100), coord, &coordCount);
-			coord[coordCount - 1].model_matrix = mat4();
-		}
-	}
 
-	//loadSence("../TexturedScene/scene/house 2/house2.obj", "../TexturedScene/scene/house 2/", shapeIndexCount, vec3(0, 0, 0), vec3(7));
-	//models[shapeIndexCount - 1].model_matrix = rotate(mat4(), float(deg2rad(90.0f), vec3(0.0f, 1.0f, 0.0f));
-	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(5, -2, 38.5), vec3(0.57, 0.5, 0.5));
-	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(11.75, -2, 38.5), vec3(0.57, 0.5, 0.5));
-	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(18.5, -2, 38.5), vec3(0.57, 0.5, 0.5));
-	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(25.25, -2, 38.5), vec3(0.57, 0.5, 0.5));
-	//loadSence("../TexturedScene/scene/Wall/wall.obj", "../TexturedScene/scene/Wall/", shapeIndexCount, vec3(32, -2, 38.5), vec3(0.57, 0.5, 0.5));
-
+	// draw animals
 	//loadSence("../TexturedScene/Farmhouse Maya/farmhouse_obj.obj", "../TexturedScene/Farmhouse Maya/", 0, vec3(0, 0, 0), 1);
 	//loadSence("../TexturedScene/Old_Warehouse/OBJ/Warehouse.obj", "../TexturedScene/Old_Warehouse/", 1);
 	//loadSence("../TexturedScene/dabrovic-sponza/sponza.obj", "../TexturedScene/dabrovic-sponza/", 2);
 	//loadSence("../TexturedScene/horse/horse.obj", "../TexturedScene/horse/", 0, vec3(0,0,0), 0.1);
 	//loadSence("../TexturedScene/Tiger/Tiger.obj", "../TexturedScene/Tiger/", 1);
 	
-	//loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", shapeIndexCount, vec3(0, 0, 0), vec3(10));
+	loadSence("../TexturedScene/chimp/chimp.obj", "../TexturedScene/chimp/", animals, &animalCount, vec3(0, 0, 0), vec3(10));
 	/*loadSence("../TexturedScene/Cat2/cat.obj", "../TexturedScene/Cat2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/Horse2/Horse.obj", "../TexturedScene/Horse2/", shapeIndexCount, vec3(0, 0, 0), vec3(0.01));
 	loadSence("../TexturedScene/The_Dog/The_Dog.obj", "../TexturedScene/The_Dog/", shapeIndexCount, vec3(0, 0, 0), vec3(1));
@@ -765,6 +750,22 @@ void My_Display()
 		}
 	}
 
+	for (int m = 0; m < animalCount; ++m) {
+
+		// transmit uniform variable
+		mat4 mv_matrix = view_matrix * animals[m].model_matrix;
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
+		glActiveTexture(GL_TEXTURE0);
+
+		// draw
+		for (int i = 0; i < animals[m].shapes.size(); ++i)
+		{
+			glBindVertexArray(animals[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, animals[m].shapes[i].ibo);
+			glDrawElements(GL_TRIANGLES, animals[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+		}
+	}
+
 	// draw grass
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
@@ -861,23 +862,45 @@ void My_Display()
 		glDrawArrays(GL_TRIANGLES, 0, grass[i].shapes[0].drawCount);
 	}
 
-	// draw sign box
-	for (int i = 0; i < signCount; i++) {
-		mat4 mv_matrix = view_matrix * coord[i].model_matrix;
+	// draw animals
+	for (int m = 0; m < animalCount; ++m) {
+
+		// transmit uniform variable
+		mat4 mv_matrix = view_matrix * animals[m].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * animals[m].model_matrix;
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glBindVertexArray(signBox[i].shapes[0].vao);
-		glBindTexture(GL_TEXTURE_2D, signBox[i].materials[0].diffuse_tex);
-		glDrawArrays(GL_TRIANGLES, 0, signBox[i].shapes[0].drawCount);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(streets[m].model_matrix));
+
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(uniforms.blinnPhong.us2dtex, 0);
+
+		// draw
+		for (int i = 0; i < animals[m].shapes.size(); ++i)
+		{
+			glBindVertexArray(animals[m].shapes[i].vao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, animals[m].shapes[i].ibo);
+			int materialID = animals[m].shapes[i].materialID;
+
+			glUniform3f(uniforms.blinnPhong.ambient, animals[m].materials[materialID].ambient[0], animals[m].materials[materialID].ambient[1], animals[m].materials[materialID].ambient[2]);
+			glUniform3f(uniforms.blinnPhong.diffuse, animals[m].materials[materialID].diffuse[0], animals[m].materials[materialID].diffuse[1], animals[m].materials[materialID].diffuse[2]);
+			glUniform1f(uniforms.blinnPhong.shininess, animals[m].materials[materialID].shininess);
+			glUniform3f(uniforms.blinnPhong.specular, animals[m].materials[materialID].specular[0], animals[m].materials[materialID].specular[1], animals[m].materials[materialID].specular[2]);
+
+			glBindTexture(GL_TEXTURE_2D, animals[m].materials[materialID].diffuse_tex);
+			glDrawElements(GL_TRIANGLES, animals[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
+		}
 	}
 
 	// draw coordinates
-	for (int i = 0; i < coordCount; i++) {
-		mat4 mv_matrix = view_matrix * coord[i].model_matrix;
+	for (int i = 0; i < animalCount; i++) {
+		mat4 mv_matrix = view_matrix * animals[i].model_matrix;
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
-		glBindVertexArray(coord[i].shapes[0].vao);
-		glDrawArrays(GL_TRIANGLES, 0, coord[i].shapes[0].drawCount);
+		glBindVertexArray(animals[i].shapes[0].vao);
+		glDrawArrays(GL_TRIANGLES, 0, animals[i].shapes[0].drawCount);
 	}
 
 	// ----- End Begin Blinn-Phong Shading Pass -----
