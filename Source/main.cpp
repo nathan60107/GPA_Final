@@ -680,7 +680,7 @@ void My_Display()
 
 	for (int m = 0; m < animalCount; ++m) {
 		// transmit uniform variable
-		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *animals[m].model_matrix));
 
 		// draw
 		for (int i = 0; i < animals[m].shapes.size(); ++i)
@@ -696,6 +696,12 @@ void My_Display()
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *grass[i].model_matrix));
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+	for (int i = 0; i < signCount; i++) {
+		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *signBox[i].model_matrix));
+		glBindVertexArray(signBox[i].shapes[0].vao);
+		glDrawArrays(GL_TRIANGLES, 0, signBox[i].shapes[0].drawCount);
 	}
 
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -743,7 +749,6 @@ void My_Display()
 
 	for (int i = 0; i < animalCount; i++) {
 		if (animalTime[i] > animalSpeed[i]) {
-			printf("%d\n", i);
 			// real time dir
 			vec3 vec = curve[(animals[i].index + 1) % curve.size()] - curve[animals[i].index];
 			float horizontalAngle = atan(vec.x / vec.z);

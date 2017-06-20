@@ -47,7 +47,7 @@ void main()
     switch(shadowSwitch)
 	{
 		case 0: //shadow+blinnPhong
-			fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0) + vec4(ambient, 1.0);
+			fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse, 1.0) + vec4(ambient, 1.0);
 			break;
 		case 1: //blinnPhong only
 			fragColor = vec4(diffuse, 1.0);

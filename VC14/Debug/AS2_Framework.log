@@ -11,20 +11,21 @@ d:\desktop\coding\opengl\gpa_final\source\main.cpp(673): warning C4018: '<': sig
 d:\desktop\coding\opengl\gpa_final\source\main.cpp(681): warning C4018: '<': signed/unsigned 不相符
 d:\desktop\coding\opengl\gpa_final\source\main.cpp(686): warning C4018: '<': signed/unsigned 不相符
 d:\desktop\coding\opengl\gpa_final\source\main.cpp(695): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(722): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(728): warning C4244: '引數': 將 'float' 轉換為 'int'，由於類型不同，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(738): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(744): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(750): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(701): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(728): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(734): warning C4244: '引數': 將 'float' 轉換為 'int'，由於類型不同，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(744): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(750): warning C4018: '<': signed/unsigned 不相符
 d:\desktop\coding\opengl\gpa_final\source\main.cpp(755): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(756): warning C4244: '=': 將 'double' 轉換為 'float'，由於類型不同，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(772): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(787): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(800): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(813): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(828): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(839): warning C4018: '<': signed/unsigned 不相符
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(891): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
-d:\desktop\coding\opengl\gpa_final\source\main.cpp(895): warning C4305: '-=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(760): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(761): warning C4244: '=': 將 'double' 轉換為 'float'，由於類型不同，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(777): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(792): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(805): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(818): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(833): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(844): warning C4018: '<': signed/unsigned 不相符
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(896): warning C4305: '+=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
+d:\desktop\coding\opengl\gpa_final\source\main.cpp(900): warning C4305: '-=': 從 'double' 轉換為 'float'，是由較大的類型轉換為較小的類型，可能導致資料遺失
   AS2_Framework.vcxproj -> D:\Desktop\CODING\openGL\GPA_final\VC14\Debug\GPA_final_Framework.exe
   AS2_Framework.vcxproj -> D:\Desktop\CODING\openGL\GPA_final\VC14\Debug\GPA_final_Framework.pdb (Full PDB)

@@ -13,7 +13,7 @@
 #define BLINNPHONG 6
 #define ANIMATION 7
 #define NOEFFECT 8
-#define SHADOW_MAP_SIZE 14745
+#define SHADOW_MAP_SIZE 12000
 
 ///using namespace
 using namespace glm;
