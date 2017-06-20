@@ -790,11 +790,6 @@ void My_Display()
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, streets[m].shapes[i].ibo);
 			int materialID = streets[m].shapes[i].materialID;
 
-			glUniform3f(uniforms.blinnPhong.ambient, streets[m].materials[materialID].ambient[0], streets[m].materials[materialID].ambient[1], streets[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms.blinnPhong.diffuse, streets[m].materials[materialID].diffuse[0], streets[m].materials[materialID].diffuse[1], streets[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms.blinnPhong.shininess, streets[m].materials[materialID].shininess);
-			glUniform3f(uniforms.blinnPhong.specular, streets[m].materials[materialID].specular[0], streets[m].materials[materialID].specular[1], streets[m].materials[materialID].specular[2]);
-
 			glBindTexture(GL_TEXTURE_2D, streets[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, streets[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
@@ -804,8 +799,12 @@ void My_Display()
 	glBindTexture(GL_TEXTURE_2D, grass[0].materials[0].diffuse_tex);
 	for (int i = 0; i < grassCount; i++) {
 		mat4 mv_matrix = view_matrix * grass[i].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * grass[i].model_matrix;
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(grass[i].model_matrix));
 		glBindVertexArray(grass[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, grass[i].shapes[0].drawCount);
 	}
@@ -831,12 +830,6 @@ void My_Display()
 			glBindVertexArray(animals[m].shapes[i].vao);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, animals[m].shapes[i].ibo);
 			int materialID = animals[m].shapes[i].materialID;
-
-			glUniform3f(uniforms.blinnPhong.ambient, animals[m].materials[materialID].ambient[0], animals[m].materials[materialID].ambient[1], animals[m].materials[materialID].ambient[2]);
-			glUniform3f(uniforms.blinnPhong.diffuse, animals[m].materials[materialID].diffuse[0], animals[m].materials[materialID].diffuse[1], animals[m].materials[materialID].diffuse[2]);
-			glUniform1f(uniforms.blinnPhong.shininess, animals[m].materials[materialID].shininess);
-			glUniform3f(uniforms.blinnPhong.specular, animals[m].materials[materialID].specular[0], animals[m].materials[materialID].specular[1], animals[m].materials[materialID].specular[2]);
-
 			glBindTexture(GL_TEXTURE_2D, animals[m].materials[materialID].diffuse_tex);
 			glDrawElements(GL_TRIANGLES, animals[m].shapes[i].drawCount, GL_UNSIGNED_INT, 0);
 		}
@@ -845,8 +838,12 @@ void My_Display()
 	// draw sign
 	for (int i = 0; i < signCount; i++) {
 		mat4 mv_matrix = view_matrix * signBox[i].model_matrix;
+		mat4 shadow_matrix = shadow_sbpv_matrix * animals[i].model_matrix;
+		glUniformMatrix4fv(uniforms.view.shadow_matrix, 1, GL_FALSE, value_ptr(shadow_matrix));
+		glUniformMatrix4fv(uniforms.blinnPhong.um4v, 1, GL_FALSE, &view_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4mv, 1, GL_FALSE, &mv_matrix[0][0]);
 		glUniformMatrix4fv(uniforms.blinnPhong.um4p, 1, GL_FALSE, &proj_matrix[0][0]);
+		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(animals[i].model_matrix));
 		glBindVertexArray(signBox[i].shapes[0].vao);
 		glBindTexture(GL_TEXTURE_2D, signBox[i].materials[0].diffuse_tex);
 		glDrawArrays(GL_TRIANGLES, 0, signBox[i].shapes[0].drawCount);
