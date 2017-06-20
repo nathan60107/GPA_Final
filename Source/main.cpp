@@ -204,7 +204,7 @@ void changeView()
 	rightDirection = vec3(sin(actualCamera.horizontalAngle - 3.14f / 2.0f), 0, cos(actualCamera.horizontalAngle - 3.14f / 2.0f));
 	up = cross(rightDirection, direction);
 	view_matrix = lookAt(actualCamera.position, actualCamera.position + direction, up);
-	proj_matrix = perspective(initialFoV - 5 * actualCamera.currentFov, viewportAspect, 0.1f, 1500.0f);
+	proj_matrix = perspective(initialFoV - 5 * actualCamera.currentFov, viewportAspect, 0.1f, 2121.0f);
 }
 
 GLuint createProgram(std::string vertex, std::string fragment)
@@ -719,8 +719,8 @@ void My_Display()
 	);
 	
 	// ----- Begin Shadow Map Pass -----
-	vec3 lightPosition = vec3(75.0f, 75.0f, 20.0f); 
-	mat4 light_proj_matrix = ortho<float>(-1000, 1000, -750, 750, -1000, 750);//frustum(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 100.0f); //ortho()
+	vec3 lightPosition = vec3(75.0f, 75.0f, 20.0f);
+	mat4 light_proj_matrix = ortho<float>(-1000, 1000, -750, 750, -750, 750);
 	mat4 light_view_matrix = lookAt(lightPosition, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	mat4 light_vp_matrix = light_proj_matrix * light_view_matrix * mat4(1.0);
 
@@ -735,7 +735,6 @@ void My_Display()
 	glPolygonOffset(4.0f, 4.0f);
 	
 	for (int m = 0; m < streetCount; ++m) {
-
 		// transmit uniform variable
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
 
@@ -749,7 +748,6 @@ void My_Display()
 	}
 
 	for (int m = 0; m < animalCount; ++m) {
-
 		// transmit uniform variable
 		glUniformMatrix4fv(uniforms.light.mvp, 1, GL_FALSE, value_ptr(light_vp_matrix *streets[m].model_matrix));
 
@@ -855,7 +853,7 @@ void My_Display()
 	}
 
 	// draw animals
-	/*for (int m = 0; m < animalCount; ++m) {
+	for (int m = 0; m < animalCount; ++m) {
 
 		// transmit uniform variable
 		mat4 mv_matrix = view_matrix * animals[m].model_matrix;
@@ -892,7 +890,7 @@ void My_Display()
 		glUniformMatrix4fv(uniforms.blinnPhong.um4m, 1, GL_FALSE, value_ptr(animals[i].model_matrix));
 		glBindVertexArray(animals[i].shapes[0].vao);
 		glDrawArrays(GL_TRIANGLES, 0, animals[i].shapes[0].drawCount);
-	}*/
+	}
 
 	// ----- End Begin Blinn-Phong Shading Pass -----
 	glutSwapBuffers();
@@ -1034,10 +1032,13 @@ void My_Menu(int id)
 		glUniform1i(uniforms.parameter.fogSwitch, (++fogSwitch)%2);
 		break;
 	case SHADOW:
-		glUniform1i(uniforms.parameter.shadowSwitch, ++shadowSwitch);// (++shadowSwitch) % 2);
+		glUniform1i(uniforms.parameter.shadowSwitch, 0);
 		break;
 	case BLINNPHONG:
-		glUniform1i(uniforms.parameter.blinnPhongSwitch, (++blinnPhongSwitch) % 2);
+		glUniform1i(uniforms.parameter.shadowSwitch, 1);
+		break;
+	case NOEFFECT:
+		glUniform1i(uniforms.parameter.shadowSwitch, 2);
 		break;
 	case MENU_TIMER_START:
 		if (!timer_enabled)
@@ -1082,19 +1083,18 @@ int main(int argc, char *argv[])
 
 	// Create a menu and bind it to mouse right button.
 	int menu_main = glutCreateMenu(My_Menu);
-	//int menu_timer = glutCreateMenu(My_Menu);
+	int menu_timer = glutCreateMenu(My_Menu);
 
 	glutSetMenu(menu_main);
-	glutAddMenuEntry("Fog", FOG);
-	glutAddMenuEntry("Shadow", SHADOW);
-	glutAddMenuEntry("Blinn Phong", BLINNPHONG);
+	glutAddMenuEntry("Fog effect", FOG);
+	glutAddSubMenu("Shadow effect", menu_timer);
 	glutAddMenuEntry("Animation", ANIMATION);
-	//glutAddSubMenu("Timer", menu_timer);
 	glutAddMenuEntry("Exit", MENU_EXIT);
 
-	/*glutSetMenu(menu_timer);
-	glutAddMenuEntry("Start", MENU_TIMER_START);
-	glutAddMenuEntry("Stop", MENU_TIMER_STOP);*/
+	glutSetMenu(menu_timer);
+	glutAddMenuEntry("Shadow + Blinn Phong", SHADOW);
+	glutAddMenuEntry("BlinnPhong only", BLINNPHONG);
+	glutAddMenuEntry("no effect", NOEFFECT);
 
 	glutSetMenu(menu_main);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);

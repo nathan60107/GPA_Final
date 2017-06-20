@@ -44,20 +44,17 @@ void main()
 	vec3 diffuse = texColor * max(dot(N, L), 0.0) * diffuse_albedo;//擴散:光照上去在物質表面反射出的漫射光
 	vec3 specular = pow(max(dot(N, H), 0.0), specular_power) * specular_albedo;//鏡面:光照上去在物質表面的反射光(有方向性
 	
-    if(shadowSwitch==1){
-		fragColor = vec4(texColor, 1.0) * vec4(max(dot(N, L), 0.0) * diffuse_albedo + specular, 1.0);//original
-			//=texColor * max(dot(N, L), 0.0) * diffuse_albedo + texColor * max(dot(N, L), 0.0) * specular	
-	}else if(shadowSwitch == 2){
-		fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(max(dot(N, L), 0.0) * diffuse_albedo + specular, 1.0);//shadow only
-			//=
-	}else if(shadowSwitch == 3){
-		fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0) + vec4(ambient, 1.0);//by TA
-	}else if(shadowSwitch == 4){
-		fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0) + vec4(ambient, 1.0);
-		fragColor *= vec4(0.6);
-	}else{
-		fragColor = vec4(diffuse, 1.0);
-			//=texColor * max(dot(N, L), 0.0) * diffuse_albedo
+    switch(shadowSwitch)
+	{
+		case 0: //shadow+blinnPhong
+			fragColor = textureProj(shadow_tex,vertexData.shadow_coord) * vec4(diffuse + specular, 1.0) + vec4(ambient, 1.0);
+			break;
+		case 1: //blinnPhong only
+			fragColor = vec4(diffuse, 1.0);
+			break;
+		case 2:
+			fragColor = vec4(texColor, 1.0);
+			break;
 	}
 	
 	float dist= length(vertexData.viewSpace_coord);
