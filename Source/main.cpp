@@ -436,7 +436,7 @@ void skyboxInit()
 	uniforms.skybox.inv_vp_matrix = glGetUniformLocation(skybox_prog, "inv_vp_matrix");
 	uniforms.skybox.eye = glGetUniformLocation(skybox_prog, "eye");
 
-	TextureData envmap_data = loadPNG("../TexturedScene/skyboxes/mountaincube.png");
+	TextureData envmap_data = loadPNG("../TexturedScene/skyboxes/skycube.png");
 	glGenTextures(1, &tex_envmap);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, tex_envmap);
 	for (int i = 0; i < 6; ++i)
